@@ -5,6 +5,8 @@ import Html exposing (Html, div, textarea, p, text)
 import Html.App
 import Html.Events exposing (onInput)
 import Task exposing (Task)
+import Combine exposing (..)
+import Combine.Num exposing (int)
 
 
 main : Program Never
@@ -40,13 +42,21 @@ type Instruction = Left | Right | Forward
 
 type alias Model =
     { input  : String
-    , output : String }
+    , output : String
+    , robot  : Position
+    , scents : List Position
+    , grid   : ( Int, Int )
+    }
 
 
 initialModel : Model
 initialModel =
     { input  = "5 3\n1 1 E\nRFRFRFRF\n\n3 2 N\nFRRFLLFFRRFLL\n\n0 3 W\nLLFFFLFLFL"
-    , output = "" }
+    , output = ""
+    , robot  = ( 0, 0, North )
+    , scents = []
+    , grid   = ( 0, 0 )
+    }
 
 
 
@@ -78,8 +88,14 @@ parseInput s =
 
 parseInputTask : String -> Task Never String
 parseInputTask s =
-    Task.succeed ("foo" ++ s)
-
+    Task.succeed (parser s)
+    |> Task.map (\result ->
+            case result of
+                Ok res ->
+                    toString res
+                Err msg ->
+                    Debug.log "parseInputTask error" msg
+        )
 
 -- VIEW
 
@@ -91,3 +107,22 @@ view ({input, output} as model) =
         , p [] [ text output ]
         , text (toString model)
         ]
+
+
+
+-- PARSING
+
+parser : String -> Result String Int
+parser s =
+    case parse int s of
+        (( Ok str, _ ) as res) ->
+            let _ = Debug.log "result" res in
+            Ok str
+
+        ( Err msg, ctx ) ->
+            Err <| "parse error: " ++ (toString msg) ++ ", " ++ (toString ctx)
+
+
+--coords : Parser ( Int, Int )
+--coords =
+
