@@ -6,10 +6,11 @@ import Html.Events exposing (onInput)
 
 main : Program Never
 main =
-    Html.App.beginnerProgram
-        { model = initialModel
+    Html.App.program
+        { init = ( initialModel, Cmd.none )
         , view = view
         , update = update
+        , subscriptions = \_ -> Sub.none
         }
 
 
@@ -53,10 +54,11 @@ type Msg
     = ChangeInput String
 
 
-update : Msg -> Model -> Model
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        ChangeInput s -> { model | input = s }
+        ChangeInput s ->
+            ( { model | input = s }, Cmd.none )
 
 
 
