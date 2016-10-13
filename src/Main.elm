@@ -15,6 +15,8 @@ main =
 
 -- TYPES
 
+type alias Position = ( Int, Int, Orientation )
+
 type Orientation = North | South | East | West
 
 type Instruction = Left | Right | Forward
@@ -33,12 +35,14 @@ type Instruction = Left | Right | Forward
 
 
 type alias Model =
-    { input : String }
+    { input  : String
+    , output : String }
 
 
 initialModel : Model
 initialModel =
-    { input = "ABC\nDEF" }
+    { input  = "5 3\n1 1 E\nRFRFRFRF\n3 2 N\nFRRFLLFFRRFLL\n0 3 W\nLLFFFLFLFL"
+    , output = "" }
 
 
 
@@ -46,13 +50,13 @@ initialModel =
 
 
 type Msg
-    = Change String
+    = ChangeInput String
 
 
 update : Msg -> Model -> Model
 update msg model =
     case msg of
-        Change s -> { model | input = s }
+        ChangeInput s -> { model | input = s }
 
 
 
@@ -60,9 +64,9 @@ update msg model =
 
 
 view : Model -> Html Msg
-view model =
+view ({input, output} as model) =
     div []
-        [ text "Hello, world!"
+        [ textarea [ onInput ChangeInput ] [ text input ]
+        , p [] [ text output ]
         , text (toString model)
-        , textarea [ onInput Change ] []
         ]
