@@ -5,7 +5,9 @@ import Html exposing (Html, div, textarea, p, text)
 import Html.App
 import Html.Events exposing (onInput)
 import Task exposing (Task)
-import Combine exposing (..)
+import Combine exposing (Parser, andThen)
+import Combine.Infix exposing (..)
+import Combine.Char exposing (newline, space, oneOf)
 import Combine.Num exposing (int)
 
 
@@ -19,21 +21,15 @@ main =
         }
 
 
+
 -- TYPES
+
 
 type alias Position = ( Int, Int, Orientation )
 
 type Orientation = North | South | East | West
 
 type Instruction = Left | Right | Forward
-
---fromStringOrientation : String -> Orientation
---fromStringOrientation s =
---    case s of
---        "N" -> North
---        "S" -> South
-
-
 
 
 
@@ -88,14 +84,12 @@ parseInput s =
 
 parseInputTask : String -> Task Never String
 parseInputTask s =
-    Task.succeed (parser s)
+    Task.succeed (parse s)
     |> Task.map (\result ->
             case result of
-                Ok res ->
-                    toString res
-                Err msg ->
-                    Debug.log "parseInputTask error" msg
-        )
+                Ok res -> res
+                Err msg -> Debug.log "parseInputTask error" msg)
+
 
 -- VIEW
 
@@ -112,17 +106,42 @@ view ({input, output} as model) =
 
 -- PARSING
 
-parser : String -> Result String Int
-parser s =
-    case parse int s of
-        (( Ok str, _ ) as res) ->
-            let _ = Debug.log "result" res in
-            Ok str
+
+parse : String -> Result String String
+parse s =
+    case Combine.parse input s of
+        (( Ok parsed, _ ) as res) ->
+            let _ = Debug.log "parse result" res in
+            Ok (toString parsed)
 
         ( Err msg, ctx ) ->
             Err <| "parse error: " ++ (toString msg) ++ ", " ++ (toString ctx)
 
 
---coords : Parser ( Int, Int )
---coords =
+input =
+    coords `andThen` (\_ -> position)
 
+
+coords : Parser ( Int, Int )
+coords =
+    (,) <$> int <* space <*> int <* newline
+
+
+position : Parser Position
+position =
+    (,,) <$> int <* space <*> int <* space <*> orientation <* newline
+
+
+orientation : Parser Orientation
+orientation =
+    toOrientation <$> oneOf ['N', 'S', 'E', 'W']
+
+
+toOrientation : Char -> Orientation
+toOrientation c =
+    case c of
+        'N' -> North
+        'S' -> South
+        'E' -> East
+        'W' -> West
+        _ -> Debug.crash "wat"
