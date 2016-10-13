@@ -1,3 +1,5 @@
+module App exposing (..)
+
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.App

@@ -2,19 +2,19 @@ module Tests exposing (..)
 
 import Test exposing (..)
 import Expect
-import String
+import App
 
 
 all : Test
 all =
-    describe "A Test Suite"
-        [ test "Addition" <|
+    describe "A Martian Test Suite"
+        [ test "input output" <|
             \() ->
-                Expect.equal (3 + 7) 10
-        , test "String.left" <|
-            \() ->
-                Expect.equal "a" (String.left 1 "abcdefg")
-        , test "This test should fail" <|
-            \() ->
-                Expect.fail "failed as expected!"
+                let
+                    ( newModel, _ ) =
+                       App.update
+                           (App.ChangeInput "5 3\n1 1 E\nRFRFRFRF\n3 2 N\nFRRFLLFFRRFLL\n0 3 W\nLLFFFLFLFL")
+                           App.initialModel
+                in
+                    Expect.equal "1 1 E\n3 3 N LOST\n2 3 S" newModel.output
         ]
