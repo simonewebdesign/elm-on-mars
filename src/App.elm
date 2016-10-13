@@ -1,7 +1,7 @@
 module App exposing (..)
 
 import Html exposing (Html, div, textarea, p, text)
---import Html.Attributes exposing (..)
+import Html.Attributes exposing (rows)
 import Html.App
 import Html.Events exposing (onInput)
 import Task exposing (Task)
@@ -97,7 +97,7 @@ parseInputTask s =
 view : Model -> Html Msg
 view ({input, output} as model) =
     div []
-        [ textarea [ onInput ChangeInput ] [ text input ]
+        [ textarea [ onInput ChangeInput, rows 20 ] [ text input ]
         , p [] [ text output ]
         , text (toString model)
         ]
