@@ -14,7 +14,7 @@ import Combine.Num exposing (int)
 main : Program Never
 main =
     Html.App.program
-        { init = ( initialModel, Cmd.none )
+        { init = ( initialModel, parseInput initialModel.input )
         , view = view
         , update = update
         , subscriptions = always Sub.none
