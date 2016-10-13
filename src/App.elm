@@ -1,9 +1,10 @@
 module App exposing (..)
 
-import Html exposing (..)
-import Html.Attributes exposing (..)
+import Html exposing (Html, div, textarea, p, text)
+--import Html.Attributes exposing (..)
 import Html.App
 import Html.Events exposing (onInput)
+import Task exposing (Task)
 
 
 main : Program Never
@@ -12,7 +13,7 @@ main =
         { init = ( initialModel, Cmd.none )
         , view = view
         , update = update
-        , subscriptions = \_ -> Sub.none
+        , subscriptions = always Sub.none
         }
 
 
@@ -54,14 +55,30 @@ initialModel =
 
 type Msg
     = ChangeInput String
+    | ChangeOutput String
+    | NoOp
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        ChangeInput s ->
-            ( { model | input = s }, Cmd.none )
+        NoOp -> ( model, Cmd.none )
 
+        ChangeInput s ->
+            ( { model | input = s }, parseInput s )
+
+        ChangeOutput s ->
+            ( { model | output = s }, Cmd.none )
+
+
+parseInput : String -> Cmd Msg
+parseInput s =
+    Task.perform (always NoOp) ChangeOutput (parseInputTask s)
+
+
+parseInputTask : String -> Task Never String
+parseInputTask s =
+    Task.succeed ("foo" ++ s)
 
 
 -- VIEW
