@@ -5,7 +5,7 @@ import Html exposing (Html, div, textarea, p, text)
 import Html.App
 import Html.Events exposing (onInput)
 import Task exposing (Task)
-import Combine exposing (Parser, andThen)
+import Combine exposing (Parser, andThen, manyTill)
 import Combine.Infix exposing (..)
 import Combine.Char exposing (newline, space, oneOf)
 import Combine.Num exposing (int)
@@ -119,7 +119,9 @@ parse s =
 
 
 input =
-    coords `andThen` (\_ -> position)
+    coords
+    `andThen` (\_ -> position)
+    `andThen` (\_ -> instructions)
 
 
 coords : Parser ( Int, Int )
@@ -144,4 +146,23 @@ toOrientation c =
         'S' -> South
         'E' -> East
         'W' -> West
+        _ -> Debug.crash "wat"
+
+
+instructions : Parser (List Instruction)
+instructions =
+    manyTill instruction newline
+
+
+instruction : Parser Instruction
+instruction =
+    toInstruction <$> oneOf ['L', 'R', 'F']
+
+
+toInstruction : Char -> Instruction
+toInstruction c =
+    case c of
+        'L' -> Left
+        'R' -> Right
+        'F' -> Forward
         _ -> Debug.crash "wat"
