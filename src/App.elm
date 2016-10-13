@@ -5,7 +5,7 @@ import Html.Attributes exposing (rows)
 import Html.App
 import Html.Events exposing (onInput)
 import Task exposing (Task)
-import Combine exposing (Parser, andThen, manyTill)
+import Combine exposing (Parser, manyTill)
 import Combine.Infix exposing (..)
 import Combine.Char exposing (newline, space, oneOf)
 import Combine.Num exposing (int)
@@ -14,7 +14,7 @@ import Combine.Num exposing (int)
 main : Program Never
 main =
     Html.App.program
-        { init = ( initialModel, parseInput initialModel.input )
+        { init = ( initialModel, parse1stLine initialModel.input )
         , view = view
         , update = update
         , subscriptions = always Sub.none
@@ -60,9 +60,12 @@ initialModel =
 
 
 type Msg
-    = ChangeInput String
+    = NoOp
+    | ChangeInput String
     | ChangeOutput String
-    | NoOp
+    | SetGrid ( Int, Int )
+    --| MoveTo Position
+    --| SetGrid ( Int, Int )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -71,24 +74,57 @@ update msg model =
         NoOp -> ( model, Cmd.none )
 
         ChangeInput s ->
-            ( { model | input = s }, parseInput s )
+            ( { model | input = s }, parse1stLine s )
 
         ChangeOutput s ->
             ( { model | output = s }, Cmd.none )
 
+        SetGrid coords ->
+            ( { model | grid = coords }, Cmd.none )
 
-parseInput : String -> Cmd Msg
-parseInput s =
-    Task.perform (always NoOp) ChangeOutput (parseInputTask s)
+        --MoveTo newPosition ->
+        --    ( { model | robot = newPosition }, Cmd.none )
 
 
-parseInputTask : String -> Task Never String
-parseInputTask s =
-    Task.succeed (parse s)
+--parseInput : String -> Cmd Msg
+--parseInput s =
+--    Task.perform (always NoOp) ChangeOutput (parseInputTask s)
+
+
+parse1stLine : String -> Cmd Msg
+parse1stLine str =
+    Task.perform (always NoOp) SetGrid (parseCoordsTask str)
+
+
+parseCoordsTask : String -> Task Never ( Int, Int )
+parseCoordsTask str =
+    Task.succeed (parseCoords str)
     |> Task.map (\result ->
             case result of
                 Ok res -> res
-                Err msg -> Debug.log "parseInputTask error" msg)
+                Err msg -> let _ = Debug.log "task failed" msg in (0, 0))
+                --Err msg -> )
+
+
+parseCoords : String -> Result String ( Int, Int )
+parseCoords str =
+    case Combine.parse coords str of
+        (( Ok parsed, _ ) as res) ->
+            --let _ = Debug.log "parsed 1st line" res in
+            Ok parsed
+
+        ( Err msg, ctx ) ->
+            Err <| "parse error: " ++ (toString msg) ++ ", " ++ (toString ctx)
+
+
+
+--parseInputTask : String -> Task Never String
+--parseInputTask s =
+--    Task.succeed (parse s)
+--    |> Task.map (\result ->
+--            case result of
+--                Ok res -> res
+--                Err msg -> Debug.log "parseInputTask error" msg)
 
 
 -- VIEW
@@ -107,21 +143,43 @@ view ({input, output} as model) =
 -- PARSING
 
 
-parse : String -> Result String String
-parse s =
-    case Combine.parse input s of
-        (( Ok parsed, _ ) as res) ->
-            let _ = Debug.log "parse result" res in
-            Ok (toString parsed)
+--parse : String -> Result String String
+--parse str =
+--    case Combine.parse input str of
+--        (( Ok parsed, _ ) as res) ->
+--            let _ = Debug.log "parse result" res in
+--            Ok (toString parsed)
 
-        ( Err msg, ctx ) ->
-            Err <| "parse error: " ++ (toString msg) ++ ", " ++ (toString ctx)
+--        ( Err msg, ctx ) ->
+--            Err <| "parse error: " ++ (toString msg) ++ ", " ++ (toString ctx)
 
 
-input =
-    coords
-    `andThen` (\_ -> position)
-    `andThen` (\_ -> instructions)
+--input =
+--    sequence [coords, position, instructions]
+
+--input =
+--    coords
+--    `andThen` (\res ->
+--        let
+--            _ = Debug.log "coords" res
+--            updateCoords = Task.perform (always NoOp) SetGrid (Task.succeed res) 
+--        in
+--            position)
+--    `andThen` (\res ->
+--        let
+--            _ = Debug.log "position" res
+
+--        in
+--            instructions)
+
+
+        --Task.perform (always NoOp) MoveTo (moveRobotTask res))
+    --`andThen` (\res -> newline)
+
+
+--moveRobotTask : Position -> Task Never Position
+--moveRobotTask pos =
+--    Task.succeed pos `Task.andThen` instructions
 
 
 coords : Parser ( Int, Int )
