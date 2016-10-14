@@ -82,7 +82,10 @@ update msg model =
 
         ChangeOutput ( s, nextInput ) ->
             let _ = Debug.log "ChangeOutput" nextInput in
-            ( { model | output = model.output ++ [text s, br [] []] }
+            ( { model
+                | output = model.output ++ [text s, br [] []]
+                --not sure it's necessary, robot = initialPosition
+              }
             , if String.isEmpty nextInput then
                 Cmd.none
               else
@@ -96,14 +99,10 @@ update msg model =
             ( { model | robot = initialPos }, parse3rdLine nextInput )
 
         ProcessInstructions (( list, nextInput ) as instructions) ->
-            --let _ = Debug.log "ProcessInstructions" nextInput in
             case list of
                 [] ->
                     let _ = Debug.log "DONE" nextInput in
                     update (ChangeOutput ( out model, nextInput )) model 
-                    --( model, Cmd.none )
-                    -- if .. then parse2ndLine else stop
-                    --( model, setOutput model nextInput )
 
                 instruction :: tail ->
                     let
@@ -112,50 +111,54 @@ update msg model =
                         update (ProcessInstructions ( tail, nextInput )) newModel
 
         ProcessInstruction instruction ->
-            case instruction of
-                Left ->
-                    let
-                        ( x, y, z ) = model.robot
+            let
+                ( x, y, z ) = model.robot
+            in
+                case instruction of
+                    Left ->
+                        let
+                            newOrientation =
+                                case z of
+                                    North -> West
+                                    South -> East
+                                    East -> North
+                                    West -> South
+                        in
+                            ( { model | robot = ( x, y, newOrientation ) }, Cmd.none )
 
-                        newOrientation =
-                            case z of
-                                North -> West
-                                South -> East
-                                East -> North
-                                West -> South
-                    in
-                        ( { model | robot = ( x, y, newOrientation ) }, Cmd.none )
+                    Right ->
+                        let
+                            newOrientation =
+                                case z of
+                                    North -> East
+                                    South -> West
+                                    East -> South
+                                    West -> North
+                        in
+                            ( { model | robot = ( x, y, newOrientation ) }, Cmd.none )
 
-                Right ->
-                    let
-                        ( x, y, z ) = model.robot
+                    Forward ->
+                        let
+                            newX =
+                                case z of
+                                    East -> x + 1
+                                    West -> x - 1
+                                    _ -> x
 
-                        newOrientation =
-                            case z of
-                                North -> East
-                                South -> West
-                                East -> South
-                                West -> North
-                    in
-                        ( { model | robot = ( x, y, newOrientation ) }, Cmd.none )
+                            newY =
+                                case z of
+                                    North -> y + 1
+                                    South -> y - 1
+                                    _ -> y
 
-                Forward ->
-                    let
-                        ( x, y, z ) = model.robot
-
-                        newX =
-                            case z of
-                                East -> x + 1
-                                West -> x - 1
-                                _ -> x
-
-                        newY =
-                            case z of
-                                North -> y + 1
-                                South -> y - 1
-                                _ -> y
-                    in
-                        ( { model | robot = ( newX, newY, z ) }, Cmd.none )
+                            outOfBounds =
+                                newX > fst model.grid || newY > snd model.grid ||
+                                newX < 0 || newY < 0
+                        in
+                            if outOfBounds then
+                                ( { model | scents = model.robot :: model.scents }, Cmd.none )
+                            else
+                                ( { model | robot = ( newX, newY, z ) }, Cmd.none )
 
 
 parse1stLine : String -> Cmd Msg
