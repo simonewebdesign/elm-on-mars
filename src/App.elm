@@ -84,7 +84,7 @@ update msg model =
         NoOp -> ( model, Cmd.none )
 
         ChangeInput s ->
-            ( { model | input = s, output = initialOutput }, parse1stLine s )
+            ( { initialModel | input = s }, parse1stLine s )
 
         ChangeOutput ( s, nextInput ) ->
             ( { model | output = model.output ++ [text s, br [] []] }
