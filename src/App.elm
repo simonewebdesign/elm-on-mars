@@ -49,12 +49,14 @@ initialModel : Model
 initialModel =
     { input  = "5 3\n1 1 E\nRFRFRFRF\n\n3 2 N\nFRRFLLFFRRFLL\n\n0 3 W\nLLFFFLFLFL"
     , output = ""
-    , robot  = ( 0, 0, North )
+    , robot  = initialPosition
     , scents = []
-    , grid   = ( 0, 0 )
+    , grid   = initialSize
     }
 
+initialPosition = ( 0, 0, North )
 
+initialSize = ( 0, 0 )
 
 -- UPDATE
 
@@ -64,8 +66,8 @@ type Msg
     | ChangeInput String
     | ChangeOutput String
     | SetGrid ( Int, Int )
-    --| MoveTo Position
-    --| SetGrid ( Int, Int )
+    | SetPosition Position
+    | ProcessInstruction Instruction
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -80,15 +82,56 @@ update msg model =
             ( { model | output = s }, Cmd.none )
 
         SetGrid coords ->
-            ( { model | grid = coords }, Cmd.none )
+            ( { model | grid = coords }, parse2ndLine model.input )
 
-        --MoveTo newPosition ->
-        --    ( { model | robot = newPosition }, Cmd.none )
+        SetPosition initialPos ->
+            ( { model | robot = initialPos }, parse3rdLine model.input )
 
+        ProcessInstruction instruction ->
+            case instruction of
+                Left ->
+                    let
+                        ( x, y, z ) = model.robot
 
---parseInput : String -> Cmd Msg
---parseInput s =
---    Task.perform (always NoOp) ChangeOutput (parseInputTask s)
+                        newOrientation =
+                            case z of
+                                North -> West
+                                South -> East
+                                East -> North
+                                West -> South
+                    in
+                        ( { model | robot = ( x, y, newOrientation ) }, parseNext )
+
+                Right ->
+                    let
+                        ( x, y, z ) = model.robot
+
+                        newOrientation =
+                            case z of
+                                North -> East
+                                South -> West
+                                East -> South
+                                West -> North
+                    in
+                        ( { model | robot = ( x, y, newOrientation ) }, parseNext )
+
+                Forward ->
+                    let
+                        ( x, y, z ) = model.robot
+
+                        newX =
+                            case z of
+                                East -> x + 1
+                                West -> x - 1
+                                _ -> x
+
+                        newY =
+                            case z of
+                                North -> y + 1
+                                South -> y - 1
+                                _ -> y
+                    in
+                        ( { model | robot = ( newX, newY, z ) }, parseNext )
 
 
 parse1stLine : String -> Cmd Msg
@@ -102,29 +145,70 @@ parseCoordsTask str =
     |> Task.map (\result ->
             case result of
                 Ok res -> res
-                Err msg -> let _ = Debug.log "task failed" msg in (0, 0))
-                --Err msg -> )
+                Err msg -> let _ = Debug.log "coords task failed" msg in initialSize)
 
 
 parseCoords : String -> Result String ( Int, Int )
 parseCoords str =
     case Combine.parse coords str of
-        (( Ok parsed, _ ) as res) ->
-            --let _ = Debug.log "parsed 1st line" res in
+        (( Ok parsed, {input} ) as res) ->
+            let _ = Debug.log "grid size parsed" res in
             Ok parsed
 
         ( Err msg, ctx ) ->
             Err <| "parse error: " ++ (toString msg) ++ ", " ++ (toString ctx)
 
 
+parse2ndLine : String -> Cmd Msg
+parse2ndLine str =
+    Task.perform (always NoOp) SetPosition (parsePositionTask str)
 
---parseInputTask : String -> Task Never String
---parseInputTask s =
---    Task.succeed (parse s)
---    |> Task.map (\result ->
---            case result of
---                Ok res -> res
---                Err msg -> Debug.log "parseInputTask error" msg)
+
+parsePositionTask : String -> Task Never Position
+parsePositionTask str =
+    Task.succeed (parsePosition str)
+    |> Task.map (\result ->
+            case result of
+                Ok res -> res
+                Err msg -> let _ = Debug.log "position task failed" msg in initialPosition)
+
+
+parsePosition : String -> Result String Position
+parsePosition str =
+     case Combine.parse position str of
+        ( Ok parsed, _ ) ->
+            Ok parsed
+
+        ( Err msg, ctx ) ->
+            Err <| "parse error: " ++ (toString msg) ++ ", " ++ (toString ctx)
+
+
+parse3rdLine : String -> Cmd Msg
+parse3rdLine str =
+    Task.perform (always NoOp) ProcessInstruction (parseInstructionTask str)
+
+
+parseInstructionTask : String -> Task Never Instruction
+parseInstructionTask str =
+    Task.succeed (parseInstruction str)
+    |> Task.map (\result ->
+            case result of
+                Ok res -> res
+                Err msg -> let _ = Debug.log "instruction task failed" msg in Left)
+
+
+parseInstruction : String -> Result String Instruction
+parseInstruction str =
+     case Combine.parse instruction str of
+        ( Ok parsed, _ ) ->
+            Ok parsed
+
+        ( Err msg, ctx ) ->
+            Err <| "parse error: " ++ (toString msg) ++ ", " ++ (toString ctx)
+
+
+parseNext =
+    Cmd.none
 
 
 -- VIEW
@@ -162,7 +246,7 @@ view ({input, output} as model) =
 --    `andThen` (\res ->
 --        let
 --            _ = Debug.log "coords" res
---            updateCoords = Task.perform (always NoOp) SetGrid (Task.succeed res) 
+--            updateCoords = Task.perform (always NoOp) SetGrid (Task.succeed res)
 --        in
 --            position)
 --    `andThen` (\res ->
