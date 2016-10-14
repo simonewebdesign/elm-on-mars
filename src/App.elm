@@ -22,9 +22,7 @@ main =
         }
 
 
-
 -- TYPES
-
 
 type alias Position = ( Int, Int, Orientation )
 
@@ -33,9 +31,7 @@ type Orientation = North | South | East | West
 type Instruction = Left | Right | Forward
 
 
-
 -- MODEL
-
 
 type alias Model =
     { input  : String
@@ -58,9 +54,7 @@ initialModel =
 initialPosition = ( 0, 0, North )
 
 initialSize = ( 0, 0 )
-
 -- UPDATE
-
 type alias Input = String
 
 type Msg
@@ -75,15 +69,19 @@ type Msg
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
+    case Debug.log "u" msg of
         NoOp -> ( model, Cmd.none )
 
         ChangeInput s ->
             ( { model | input = s }, parse1stLine s )
 
         ChangeOutput ( s, nextInput ) ->
+            let _ = Debug.log "ChangeOutput" nextInput in
             ( { model | output = s }
-            , if String.isEmpty nextInput then Cmd.none else parseNext nextInput
+            , if String.isEmpty nextInput then
+                Cmd.none
+              else
+                parse2ndLine nextInput
             )
 
         SetGrid ( coords, nextInput ) ->
@@ -92,13 +90,21 @@ update msg model =
         SetPosition ( initialPos, nextInput ) ->
             ( { model | robot = initialPos }, parse3rdLine nextInput )
 
-        ProcessInstructions ( list, nextInput ) ->
+        ProcessInstructions (( list, nextInput ) as instructions) ->
+            --let _ = Debug.log "ProcessInstructions" nextInput in
             case list of
                 [] ->
-                    ( model, setOutput model nextInput )
+                    let _ = Debug.log "DONE" nextInput in
+                    update (ChangeOutput ( out model, nextInput )) model 
+                    --( model, Cmd.none )
+                    -- if .. then parse2ndLine else stop
+                    --( model, setOutput model nextInput )
 
-                instruction :: list ->
-                    update (ProcessInstruction instruction) model
+                instruction :: tail ->
+                    let
+                        ( processedInstruction, _ ) = update (ProcessInstruction instruction) model
+                    in
+                        update (ProcessInstructions ( tail, nextInput )) model
 
         ProcessInstruction instruction ->
             case instruction of
@@ -229,20 +235,28 @@ newOutput : Model -> Input -> Task Never ( String, Input )
 newOutput model input =
     let
         ( x, y, z ) = model.robot
+        _ = Debug.log "newOutput robot" model.robot
     in
-        (Task.succeed <|
-            toString x ++ " " ++ toString y ++ " "
-            ++ String.fromChar (toCharOrientation z))
+        (Task.succeed <| out model)
         |> Task.map (\str -> ( str, input ))
 
+{-| This function figures out how to print the answer based on the model. -}
+out : Model -> String
+out model =
+    let
+        ( x, y, z ) = model.robot
+    in
+        toString x ++ " " ++ toString y ++ " "
+        ++ String.fromChar (toCharOrientation z)
 
-parseNext : String -> Cmd Msg
-parseNext str =
-    Task.perform (always NoOp) ChangeOutput (Task.succeed ("str", "str"))
+
+--parseNext : String -> Cmd Msg
+--parseNext str =
+--    let _ = Debug.log "parseNext" str in
+--    Task.perform (always NoOp) ChangeOutput (Task.succeed ("str", "str"))
 
 
 -- VIEW
-
 
 view : Model -> Html Msg
 view ({input, output} as model) =
@@ -253,9 +267,7 @@ view ({input, output} as model) =
         ]
 
 
-
 -- PARSING
-
 
 coords : Parser ( Int, Int )
 coords =
@@ -293,7 +305,7 @@ toCharOrientation i =
 
 instructions : Parser (List Instruction)
 instructions =
-    manyTill instruction newline
+    manyTill instruction newline <* newline
 
 
 instruction : Parser Instruction
