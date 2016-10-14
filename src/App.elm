@@ -1,7 +1,7 @@
 module App exposing (..)
 
 import String
-import Html exposing (Html, div, textarea, p, text)
+import Html exposing (Html, div, textarea, p, text, br)
 import Html.Attributes exposing (rows)
 import Html.App
 import Html.Events exposing (onInput)
@@ -35,7 +35,7 @@ type Instruction = Left | Right | Forward
 
 type alias Model =
     { input  : String
-    , output : String
+    , output : List (Html Msg)
     , robot  : Position
     , scents : List Position
     , grid   : ( Int, Int )
@@ -45,16 +45,21 @@ type alias Model =
 initialModel : Model
 initialModel =
     { input  = "5 3\n1 1 E\nRFRFRFRF\n\n3 2 N\nFRRFLLFFRRFLL\n\n0 3 W\nLLFFFLFLFL"
-    , output = ""
+    , output = initialOutput
     , robot  = initialPosition
     , scents = []
     , grid   = initialSize
     }
 
+initialOutput = [text ""]
+
 initialPosition = ( 0, 0, North )
 
 initialSize = ( 0, 0 )
+
+
 -- UPDATE
+
 type alias Input = String
 
 type Msg
@@ -73,11 +78,11 @@ update msg model =
         NoOp -> ( model, Cmd.none )
 
         ChangeInput s ->
-            ( { model | input = s }, parse1stLine s )
+            ( { model | input = s, output = initialOutput }, parse1stLine s )
 
         ChangeOutput ( s, nextInput ) ->
             let _ = Debug.log "ChangeOutput" nextInput in
-            ( { model | output = s }
+            ( { model | output = model.output ++ [text s, br [] []] }
             , if String.isEmpty nextInput then
                 Cmd.none
               else
@@ -262,7 +267,7 @@ view : Model -> Html Msg
 view ({input, output} as model) =
     div []
         [ textarea [ onInput ChangeInput, rows 20 ] [ text input ]
-        , p [] [ text output ]
+        , p [] output
         , text (toString model)
         ]
 
