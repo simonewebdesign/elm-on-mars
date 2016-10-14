@@ -102,7 +102,7 @@ update msg model =
             case list of
                 [] ->
                     let _ = Debug.log "DONE" nextInput in
-                    update (ChangeOutput ( out model, nextInput )) model 
+                    update (ChangeOutput ( out model, nextInput )) model
 
                 instruction :: tail ->
                     let
@@ -151,11 +151,9 @@ update msg model =
                                     South -> y - 1
                                     _ -> y
 
-                            outOfBounds =
-                                newX > fst model.grid || newY > snd model.grid ||
-                                newX < 0 || newY < 0
+                            ( gridX, gridY ) = model.grid
                         in
-                            if outOfBounds then
+                            if isOutOfBounds newX newY gridX gridY then
                                 ( { model | scents = model.robot :: model.scents }, Cmd.none )
                             else
                                 ( { model | robot = ( newX, newY, z ) }, Cmd.none )
@@ -258,10 +256,10 @@ out model =
         ++ String.fromChar (toCharOrientation z)
 
 
---parseNext : String -> Cmd Msg
---parseNext str =
---    let _ = Debug.log "parseNext" str in
---    Task.perform (always NoOp) ChangeOutput (Task.succeed ("str", "str"))
+{-| The first pair is the robot position and the second pair is the grid size -}
+isOutOfBounds : Int -> Int -> Int -> Int -> Bool
+isOutOfBounds x y a b =
+    x > a || y > b || x < 0 || y < 0
 
 
 -- VIEW
