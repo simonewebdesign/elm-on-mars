@@ -274,7 +274,6 @@ view ({input, output} as model) =
     div []
         [ textarea [ onInput ChangeInput, rows 20 ] [ text input ]
         , p [] output
-        , text (toString model)
         ]
 
 
