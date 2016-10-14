@@ -9280,26 +9280,6 @@ var _user$project$App$parseCoords = function (str) {
 				_elm_lang$core$Basics$toString(_p4._0._0)));
 	}
 };
-var _user$project$App$initialSize = {ctor: '_Tuple2', _0: 0, _1: 0};
-var _user$project$App$parseCoordsTask = function (str) {
-	return A2(
-		_elm_lang$core$Task$map,
-		function (result) {
-			var _p5 = result;
-			if (_p5.ctor === 'Ok') {
-				return _p5._0;
-			} else {
-				var _p6 = A2(_elm_lang$core$Debug$log, 'coords task failed', _p5._0);
-				return {ctor: '_Tuple2', _0: _user$project$App$initialSize, _1: ''};
-			}
-		},
-		_elm_lang$core$Task$succeed(
-			_user$project$App$parseCoords(str)));
-};
-var _user$project$App$initialOutput = _elm_lang$core$Native_List.fromArray(
-	[
-		_elm_lang$html$Html$text('')
-	]);
 var _user$project$App$Model = F5(
 	function (a, b, c, d, e) {
 		return {input: a, output: b, robot: c, scents: d, grid: e};
@@ -9308,18 +9288,28 @@ var _user$project$App$West = {ctor: 'West'};
 var _user$project$App$East = {ctor: 'East'};
 var _user$project$App$South = {ctor: 'South'};
 var _user$project$App$North = {ctor: 'North'};
-var _user$project$App$initialRobot = {ctor: '_Tuple4', _0: false, _1: 0, _2: 0, _3: _user$project$App$North};
 var _user$project$App$initialModel = {
 	input: '5 3\n1 1 E\nRFRFRFRF\n\n3 2 N\nFRRFLLFFRRFLL\n\n0 3 W\nLLFFFLFLFL\n\n',
-	output: _user$project$App$initialOutput,
-	robot: _user$project$App$initialRobot,
+	output: _elm_lang$core$Native_List.fromArray(
+		[
+			_elm_lang$html$Html$text('')
+		]),
+	robot: {ctor: '_Tuple4', _0: false, _1: 0, _2: 0, _3: _user$project$App$North},
 	scents: _elm_lang$core$Native_List.fromArray(
 		[]),
-	grid: _user$project$App$initialSize
+	grid: {ctor: '_Tuple2', _0: 0, _1: 0}
+};
+var _user$project$App$parseCoordsTask = function (str) {
+	return A2(
+		_elm_lang$core$Task$map,
+		_elm_lang$core$Result$withDefault(
+			{ctor: '_Tuple2', _0: _user$project$App$initialModel.grid, _1: ''}),
+		_elm_lang$core$Task$succeed(
+			_user$project$App$parseCoords(str)));
 };
 var _user$project$App$toOrientation = function (c) {
-	var _p7 = c;
-	switch (_p7.valueOf()) {
+	var _p5 = c;
+	switch (_p5.valueOf()) {
 		case 'N':
 			return _user$project$App$North;
 		case 'S':
@@ -9332,10 +9322,10 @@ var _user$project$App$toOrientation = function (c) {
 			return _elm_lang$core$Native_Utils.crashCase(
 				'App',
 				{
-					start: {line: 299, column: 5},
-					end: {line: 304, column: 31}
+					start: {line: 283, column: 5},
+					end: {line: 288, column: 31}
 				},
-				_p7)('wat');
+				_p5)('wat');
 	}
 };
 var _user$project$App$orientation = A2(
@@ -9372,30 +9362,23 @@ var _user$project$App$position = A2(
 		_user$project$App$orientation),
 	_Bogdanp$elm_combine$Combine_Char$newline);
 var _user$project$App$parseRobot = function (str) {
-	var _p9 = A2(_Bogdanp$elm_combine$Combine$parse, _user$project$App$position, str);
-	if (_p9._0.ctor === 'Ok') {
+	var _p7 = A2(_Bogdanp$elm_combine$Combine$parse, _user$project$App$position, str);
+	if (_p7._0.ctor === 'Ok') {
 		return _elm_lang$core$Result$Ok(
-			{ctor: '_Tuple2', _0: _p9._0._0, _1: _p9._1.input});
+			{ctor: '_Tuple2', _0: _p7._0._0, _1: _p7._1.input});
 	} else {
 		return _elm_lang$core$Result$Err(
 			A2(
 				_elm_lang$core$Basics_ops['++'],
 				'parse error: ',
-				_elm_lang$core$Basics$toString(_p9._0._0)));
+				_elm_lang$core$Basics$toString(_p7._0._0)));
 	}
 };
 var _user$project$App$parseRobotTask = function (str) {
 	return A2(
 		_elm_lang$core$Task$map,
-		function (result) {
-			var _p10 = result;
-			if (_p10.ctor === 'Ok') {
-				return _p10._0;
-			} else {
-				var _p11 = A2(_elm_lang$core$Debug$log, 'position task failed', _p10._0);
-				return {ctor: '_Tuple2', _0: _user$project$App$initialRobot, _1: ''};
-			}
-		},
+		_elm_lang$core$Result$withDefault(
+			{ctor: '_Tuple2', _0: _user$project$App$initialModel.robot, _1: ''}),
 		_elm_lang$core$Task$succeed(
 			_user$project$App$parseRobot(str)));
 };
@@ -9403,8 +9386,8 @@ var _user$project$App$Forward = {ctor: 'Forward'};
 var _user$project$App$Right = {ctor: 'Right'};
 var _user$project$App$Left = {ctor: 'Left'};
 var _user$project$App$toInstruction = function (c) {
-	var _p12 = c;
-	switch (_p12.valueOf()) {
+	var _p8 = c;
+	switch (_p8.valueOf()) {
 		case 'L':
 			return _user$project$App$Left;
 		case 'R':
@@ -9415,10 +9398,10 @@ var _user$project$App$toInstruction = function (c) {
 			return _elm_lang$core$Native_Utils.crashCase(
 				'App',
 				{
-					start: {line: 328, column: 5},
-					end: {line: 332, column: 31}
+					start: {line: 312, column: 5},
+					end: {line: 316, column: 31}
 				},
-				_p12)('wat');
+				_p8)('wat');
 	}
 };
 var _user$project$App$instruction = A2(
@@ -9436,35 +9419,28 @@ var _user$project$App$instructions = A2(
 	A2(_Bogdanp$elm_combine$Combine$manyTill, _user$project$App$instruction, _Bogdanp$elm_combine$Combine_Char$newline),
 	_Bogdanp$elm_combine$Combine_Char$newline);
 var _user$project$App$parseInstructions = function (str) {
-	var _p14 = A2(_Bogdanp$elm_combine$Combine$parse, _user$project$App$instructions, str);
-	if (_p14._0.ctor === 'Ok') {
+	var _p10 = A2(_Bogdanp$elm_combine$Combine$parse, _user$project$App$instructions, str);
+	if (_p10._0.ctor === 'Ok') {
 		return _elm_lang$core$Result$Ok(
-			{ctor: '_Tuple2', _0: _p14._0._0, _1: _p14._1.input});
+			{ctor: '_Tuple2', _0: _p10._0._0, _1: _p10._1.input});
 	} else {
 		return _elm_lang$core$Result$Err(
 			A2(
 				_elm_lang$core$Basics_ops['++'],
 				'parse error: ',
-				_elm_lang$core$Basics$toString(_p14._0._0)));
+				_elm_lang$core$Basics$toString(_p10._0._0)));
 	}
 };
 var _user$project$App$parseInstructionsTask = function (str) {
 	return A2(
 		_elm_lang$core$Task$map,
-		function (result) {
-			var _p15 = result;
-			if (_p15.ctor === 'Ok') {
-				return _p15._0;
-			} else {
-				var _p16 = A2(_elm_lang$core$Debug$log, 'instructions task failed', _p15._0);
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_List.fromArray(
-						[]),
-					_1: ''
-				};
-			}
-		},
+		_elm_lang$core$Result$withDefault(
+			{
+				ctor: '_Tuple2',
+				_0: _elm_lang$core$Native_List.fromArray(
+					[]),
+				_1: ''
+			}),
 		_elm_lang$core$Task$succeed(
 			_user$project$App$parseInstructions(str)));
 };
@@ -9486,8 +9462,8 @@ var _user$project$App$ChangeOutput = function (a) {
 var _user$project$App$ChangeInput = function (a) {
 	return {ctor: 'ChangeInput', _0: a};
 };
-var _user$project$App$view = function (_p17) {
-	var _p18 = _p17;
+var _user$project$App$view = function (_p11) {
+	var _p12 = _p11;
 	return A2(
 		_elm_lang$html$Html$div,
 		_elm_lang$core$Native_List.fromArray(
@@ -9503,13 +9479,13 @@ var _user$project$App$view = function (_p17) {
 					]),
 				_elm_lang$core$Native_List.fromArray(
 					[
-						_elm_lang$html$Html$text(_p18.input)
+						_elm_lang$html$Html$text(_p12.input)
 					])),
 				A2(
 				_elm_lang$html$Html$p,
 				_elm_lang$core$Native_List.fromArray(
 					[]),
-				_p18.output)
+				_p12.output)
 			]));
 };
 var _user$project$App$NoOp = {ctor: 'NoOp'};
@@ -9538,21 +9514,21 @@ var _user$project$App$update = F2(
 	function (msg, model) {
 		update:
 		while (true) {
-			var _p19 = A2(_elm_lang$core$Debug$log, 'm', msg);
-			switch (_p19.ctor) {
+			var _p13 = A2(_elm_lang$core$Debug$log, 'm', msg);
+			switch (_p13.ctor) {
 				case 'NoOp':
 					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
 				case 'ChangeInput':
-					var _p20 = _p19._0;
+					var _p14 = _p13._0;
 					return {
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(
 							_user$project$App$initialModel,
-							{input: _p20}),
-						_1: _user$project$App$parse1stLine(_p20)
+							{input: _p14}),
+						_1: _user$project$App$parse1stLine(_p14)
 					};
 				case 'ChangeOutput':
-					var _p21 = _p19._0._1;
+					var _p15 = _p13._0._1;
 					return {
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(
@@ -9563,7 +9539,7 @@ var _user$project$App$update = F2(
 									model.output,
 									_elm_lang$core$Native_List.fromArray(
 										[
-											_elm_lang$html$Html$text(_p19._0._0),
+											_elm_lang$html$Html$text(_p13._0._0),
 											A2(
 											_elm_lang$html$Html$br,
 											_elm_lang$core$Native_List.fromArray(
@@ -9572,63 +9548,63 @@ var _user$project$App$update = F2(
 												[]))
 										]))
 							}),
-						_1: _elm_lang$core$String$isEmpty(_p21) ? _elm_lang$core$Platform_Cmd$none : _user$project$App$parse2ndLine(_p21)
+						_1: _elm_lang$core$String$isEmpty(_p15) ? _elm_lang$core$Platform_Cmd$none : _user$project$App$parse2ndLine(_p15)
 					};
 				case 'SetGrid':
 					return {
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(
 							model,
-							{grid: _p19._0._0}),
-						_1: _user$project$App$parse2ndLine(_p19._0._1)
+							{grid: _p13._0._0}),
+						_1: _user$project$App$parse2ndLine(_p13._0._1)
 					};
 				case 'SetRobot':
 					return {
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(
 							model,
-							{robot: _p19._0._0}),
-						_1: _user$project$App$parse3rdLine(_p19._0._1)
+							{robot: _p13._0._0}),
+						_1: _user$project$App$parse3rdLine(_p13._0._1)
 					};
 				case 'ProcessInstructions':
-					var _p24 = _p19._0._1;
-					var _p22 = _p19._0._0;
-					if (_p22.ctor === '[]') {
-						var _v12 = _user$project$App$ChangeOutput(
+					var _p18 = _p13._0._1;
+					var _p16 = _p13._0._0;
+					if (_p16.ctor === '[]') {
+						var _v9 = _user$project$App$ChangeOutput(
 							{
 								ctor: '_Tuple2',
 								_0: _user$project$App$out(model),
-								_1: _p24
+								_1: _p18
 							}),
-							_v13 = model;
-						msg = _v12;
-						model = _v13;
+							_v10 = model;
+						msg = _v9;
+						model = _v10;
 						continue update;
 					} else {
-						var _p23 = A2(
+						var _p17 = A2(
 							_user$project$App$update,
-							_user$project$App$ProcessInstruction(_p22._0),
+							_user$project$App$ProcessInstruction(_p16._0),
 							model);
-						var newModel = _p23._0;
-						var _v14 = _user$project$App$ProcessInstructions(
-							{ctor: '_Tuple2', _0: _p22._1, _1: _p24}),
-							_v15 = newModel;
-						msg = _v14;
-						model = _v15;
+						var newModel = _p17._0;
+						var _v11 = _user$project$App$ProcessInstructions(
+							{ctor: '_Tuple2', _0: _p16._1, _1: _p18}),
+							_v12 = newModel;
+						msg = _v11;
+						model = _v12;
 						continue update;
 					}
 				default:
-					var _p25 = model.robot;
-					var isLost = _p25._0;
-					var x = _p25._1;
-					var y = _p25._2;
-					var z = _p25._3;
-					var _p26 = _p19._0;
-					switch (_p26.ctor) {
+					var _p19 = model.robot;
+					var isLost = _p19._0;
+					var x = _p19._1;
+					var y = _p19._2;
+					var z = _p19._3;
+					var _p20 = _p13._0;
+					switch (_p20.ctor) {
 						case 'Left':
 							var newOrientation = function () {
-								var _p27 = z;
-								switch (_p27.ctor) {
+								var _p21 = z;
+								switch (_p21.ctor) {
 									case 'North':
 										return _user$project$App$West;
 									case 'South':
@@ -9650,8 +9626,8 @@ var _user$project$App$update = F2(
 							};
 						case 'Right':
 							var newOrientation = function () {
-								var _p28 = z;
-								switch (_p28.ctor) {
+								var _p22 = z;
+								switch (_p22.ctor) {
 									case 'North':
 										return _user$project$App$East;
 									case 'South':
@@ -9677,8 +9653,8 @@ var _user$project$App$update = F2(
 								{ctor: '_Tuple3', _0: x, _1: y, _2: z},
 								model.scents);
 							var newY = function () {
-								var _p29 = z;
-								switch (_p29.ctor) {
+								var _p23 = z;
+								switch (_p23.ctor) {
 									case 'North':
 										return y + 1;
 									case 'South':
@@ -9688,8 +9664,8 @@ var _user$project$App$update = F2(
 								}
 							}();
 							var newX = function () {
-								var _p30 = z;
-								switch (_p30.ctor) {
+								var _p24 = z;
+								switch (_p24.ctor) {
 									case 'East':
 										return x + 1;
 									case 'West':
