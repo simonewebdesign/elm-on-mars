@@ -28,6 +28,8 @@ type alias Grid = ( Int, Int )
 
 type alias Robot = ( Lost, Int, Int, Orientation )
 
+type alias Scent = ( Int, Int, Orientation )
+
 type alias Lost = Bool
 
 type Orientation = North | South | East | West
@@ -41,14 +43,14 @@ type alias Model =
     { input  : String
     , output : List (Html Msg)
     , robot  : Robot
-    , scents : List Robot
+    , scents : List Scent
     , grid   : Grid
     }
 
 
 initialModel : Model
 initialModel =
-    { input  = "5 3\n1 1 E\nRFRFRFRF\n\n3 2 N\nFRRFLLFFRRFLL\n\n0 3 W\nLLFFFLFLFL"
+    { input  = "5 3\n1 1 E\nRFRFRFRF\n\n3 2 N\nFRRFLLFFRRFLL\n\n0 3 W\nLLFFFLFLFL\n\n"
     , output = initialOutput
     , robot  = initialRobot
     , scents = []
@@ -78,18 +80,14 @@ type Msg
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case Debug.log "u" msg of
+    case Debug.log "m" msg of
         NoOp -> ( model, Cmd.none )
 
         ChangeInput s ->
             ( { model | input = s, output = initialOutput }, parse1stLine s )
 
         ChangeOutput ( s, nextInput ) ->
-            let _ = Debug.log "ChangeOutput" nextInput in
-            ( { model
-                | output = model.output ++ [text s, br [] []]
-                --not sure it's necessary, robot = initialRobot
-              }
+            ( { model | output = model.output ++ [text s, br [] []] }
             , if String.isEmpty nextInput then
                 Cmd.none
               else
@@ -105,7 +103,6 @@ update msg model =
         ProcessInstructions (( list, nextInput ) as instructions) ->
             case list of
                 [] ->
-                    let _ = Debug.log "DONE" nextInput in
                     update (ChangeOutput ( out model, nextInput )) model
 
                 instruction :: tail ->
@@ -155,14 +152,18 @@ update msg model =
                                     South -> y - 1
                                     _ -> y
 
+                            inScent = List.member ( x, y, z ) model.scents
+
                             outOfBounds =
                                 newX > fst model.grid || newY > snd model.grid ||
                                 newX < 0 || newY < 0
                         in
-                            if outOfBounds then
+                            if inScent then
+                                ( model, Cmd.none )
+                            else if outOfBounds then
                                 ( { model
                                     | robot = ( True, newX, newY, z )
-                                    , scents = model.robot :: model.scents }
+                                    , scents = ( x, y, z ) :: model.scents }
                                 , Cmd.none
                                 )
                             else
@@ -187,11 +188,10 @@ parseCoords : String -> Result String ( Grid, String )
 parseCoords str =
     case Combine.parse coords str of
         (( Ok parsed, {input} ) as res) ->
-            --let _ = Debug.log "grid size parsed" res in
             Ok ( parsed, input )
 
         ( Err msg, ctx ) ->
-            Err <| "parse error: " ++ toString msg -- ++ ", " ++ toString ctx
+            Err <| "parse error: " ++ toString msg
 
 
 parse2ndLine : String -> Cmd Msg
@@ -215,7 +215,7 @@ parseRobot str =
             Ok ( parsed, input )
 
         ( Err msg, ctx ) ->
-            Err <| "parse error: " ++ toString msg -- ++ ", " ++ toString ctx
+            Err <| "parse error: " ++ toString msg
 
 
 parse3rdLine : String -> Cmd Msg
@@ -239,7 +239,7 @@ parseInstructions str =
             Ok ( parsed, input )
 
         ( Err msg, ctx ) ->
-            Err <| "parse error: " ++ toString msg -- ++ ", " ++ toString ctx
+            Err <| "parse error: " ++ toString msg
 
 
 setOutput : Model -> Input -> Cmd Msg
@@ -251,7 +251,6 @@ newOutput : Model -> Input -> Task Never ( String, Input )
 newOutput model input =
     let
         ( _, x, y, z ) = model.robot
-        _ = Debug.log "newOutput robot" model.robot
     in
         (Task.succeed <| out model)
         |> Task.map (\str -> ( str, input ))
@@ -260,7 +259,6 @@ newOutput model input =
 out : Model -> String
 out model =
     let
-        _ = Debug.log "OUT" model
         ( isLost, x, y, z ) = model.robot
         ( gridX, gridY ) = model.grid
     in
