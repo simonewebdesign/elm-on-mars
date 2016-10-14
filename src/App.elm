@@ -107,9 +107,9 @@ update msg model =
 
                 instruction :: tail ->
                     let
-                        ( processedInstruction, _ ) = update (ProcessInstruction instruction) model
+                        ( newModel, _ ) = update (ProcessInstruction instruction) model
                     in
-                        update (ProcessInstructions ( tail, nextInput )) model
+                        update (ProcessInstructions ( tail, nextInput )) newModel
 
         ProcessInstruction instruction ->
             case instruction of
