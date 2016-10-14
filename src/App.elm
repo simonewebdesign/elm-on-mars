@@ -1,5 +1,6 @@
 module App exposing (..)
 
+import String
 import Html exposing (Html, div, textarea, p, text)
 import Html.Attributes exposing (rows)
 import Html.App
@@ -65,10 +66,10 @@ type alias Input = String
 type Msg
     = NoOp
     | ChangeInput Input
-    | ChangeOutput Input
+    | ChangeOutput ( Input, Input )
     | SetGrid ( ( Int, Int ), Input )
     | SetPosition ( Position, Input )
-    | ProcessInstructions (List Instruction)
+    | ProcessInstructions ( (List Instruction), Input )
     | ProcessInstruction Instruction
 
 
@@ -80,8 +81,10 @@ update msg model =
         ChangeInput s ->
             ( { model | input = s }, parse1stLine s )
 
-        ChangeOutput s ->
-            ( { model | output = s }, Cmd.none )
+        ChangeOutput ( s, nextInput ) ->
+            ( { model | output = s }
+            , if String.isEmpty nextInput then Cmd.none else parseNext nextInput
+            )
 
         SetGrid ( coords, nextInput ) ->
             ( { model | grid = coords }, parse2ndLine nextInput )
@@ -89,10 +92,10 @@ update msg model =
         SetPosition ( initialPos, nextInput ) ->
             ( { model | robot = initialPos }, parse3rdLine nextInput )
 
-        ProcessInstructions list ->
+        ProcessInstructions ( list, nextInput ) ->
             case list of
                 [] ->
-                    ( model, Cmd.none )
+                    ( model, setOutput model nextInput )
 
                 instruction :: list ->
                     update (ProcessInstruction instruction) model
@@ -198,42 +201,44 @@ parse3rdLine str =
     Task.perform (always NoOp) ProcessInstructions (parseInstructionsTask str)
 
 
-parseInstructionTask : String -> Task Never Instruction
-parseInstructionTask str =
-    Task.succeed (parseInstruction str)
-    |> Task.map (\result ->
-            case result of
-                Ok res -> res
-                Err msg -> let _ = Debug.log "instruction task failed" msg in Left)
-
-
-parseInstruction : String -> Result String Instruction
-parseInstruction str =
-     case Combine.parse instruction str of
-        ( Ok parsed, _ ) ->
-            Ok parsed
-
-        ( Err msg, ctx ) ->
-            Err <| "parse error: " ++ toString msg -- ++ ", " ++ toString ctx
-
-
-parseInstructionsTask : String -> Task Never (List Instruction)
+parseInstructionsTask : String -> Task Never ( (List Instruction), Input )
 parseInstructionsTask str =
     Task.succeed (parseInstructions str)
     |> Task.map (\result ->
             case result of
                 Ok res -> res
-                Err msg -> let _ = Debug.log "instructions task failed" msg in [])
+                Err msg -> let _ = Debug.log "instructions task failed" msg in ( [], "" ))
 
 
-parseInstructions : String -> Result String (List Instruction)
+parseInstructions : String -> Result String ( (List Instruction), Input )
 parseInstructions str =
      case Combine.parse instructions str of
-        ( Ok parsed, _ ) ->
-            Ok parsed
+        ( Ok parsed, {input} ) ->
+            Ok ( parsed, input )
 
         ( Err msg, ctx ) ->
             Err <| "parse error: " ++ toString msg -- ++ ", " ++ toString ctx
+
+
+setOutput : Model -> Input -> Cmd Msg
+setOutput model input =
+    Task.perform (always NoOp) ChangeOutput (newOutput model input)
+
+
+newOutput : Model -> Input -> Task Never ( String, Input )
+newOutput model input =
+    let
+        ( x, y, z ) = model.robot
+    in
+        (Task.succeed <|
+            toString x ++ " " ++ toString y ++ " "
+            ++ String.fromChar (toCharOrientation z))
+        |> Task.map (\str -> ( str, input ))
+
+
+parseNext : String -> Cmd Msg
+parseNext str =
+    Task.perform (always NoOp) ChangeOutput (Task.succeed ("str", "str"))
 
 
 -- VIEW
@@ -275,6 +280,15 @@ toOrientation c =
         'E' -> East
         'W' -> West
         _ -> Debug.crash "wat"
+
+
+toCharOrientation : Orientation -> Char
+toCharOrientation i =
+    case i of
+        North -> 'N'
+        South -> 'S'
+        East -> 'E'
+        West -> 'W'
 
 
 instructions : Parser (List Instruction)
