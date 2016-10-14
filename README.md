@@ -1,8 +1,23 @@
-# Elm project
+# Martian Robots
 
 ## Getting started
 
-You need to have [Elm](http://elm-lang.org/) 0.17 installed on your machine.
+### Viewing the project (no need to compile or install anything)
+
+Just clone this repo and open `index.html` in a browser.
+
+If you're using OS X just copy paste this in your terminal:
+
+```
+git clone https://github.com/simonewebdesign/martian-robots.git
+cd martian-robots
+python -m SimpleHTTPServer 8000 &
+open http://localhost:8000/
+```
+
+### Compiling from source
+
+If you want to compile this project you need [Elm](http://elm-lang.org/) 0.17 installed on your machine.
 
 Compile this project with:
 
@@ -12,7 +27,12 @@ Then view it:
 
     elm reactor
 
-# Martian Robots
+### Running the tests
+
+Make sure you have Node.js installed, then run:
+
+    elm test
+
 
 ## The Problem
 
