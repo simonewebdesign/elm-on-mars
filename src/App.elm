@@ -51,18 +51,11 @@ type alias Model =
 initialModel : Model
 initialModel =
     { input  = "5 3\n1 1 E\nRFRFRFRF\n\n3 2 N\nFRRFLLFFRRFLL\n\n0 3 W\nLLFFFLFLFL\n\n"
-    , output = initialOutput
-    , robot  = initialRobot
+    , output = [text ""]
+    , robot  = ( False, 0, 0, North )
     , scents = []
-    , grid   = initialSize
+    , grid   = ( 0, 0 )
     }
-
-initialOutput = [text ""]
-
-initialRobot = ( False, 0, 0, North )
-
-initialSize = ( 0, 0 )
-
 
 -- UPDATE
 
@@ -178,10 +171,7 @@ parse1stLine str =
 parseCoordsTask : String -> Task Never ( Grid, String )
 parseCoordsTask str =
     Task.succeed (parseCoords str)
-    |> Task.map (\result ->
-            case result of
-                Ok res -> res
-                Err msg -> let _ = Debug.log "coords task failed" msg in ( initialSize, "" ))
+    |> Task.map (Result.withDefault ( initialModel.grid, "" ))
 
 
 parseCoords : String -> Result String ( Grid, String )
@@ -202,10 +192,7 @@ parse2ndLine str =
 parseRobotTask : String -> Task Never ( Robot, String )
 parseRobotTask str =
     Task.succeed (parseRobot str)
-    |> Task.map (\result ->
-            case result of
-                Ok res -> res
-                Err msg -> let _ = Debug.log "position task failed" msg in ( initialRobot, "" ))
+    |> Task.map (Result.withDefault ( initialModel.robot, "" ))
 
 
 parseRobot : String -> Result String ( Robot, String )
@@ -226,10 +213,7 @@ parse3rdLine str =
 parseInstructionsTask : String -> Task Never ( (List Instruction), Input )
 parseInstructionsTask str =
     Task.succeed (parseInstructions str)
-    |> Task.map (\result ->
-            case result of
-                Ok res -> res
-                Err msg -> let _ = Debug.log "instructions task failed" msg in ( [], "" ))
+    |> Task.map (Result.withDefault ( [], "" ))
 
 
 parseInstructions : String -> Result String ( (List Instruction), Input )
