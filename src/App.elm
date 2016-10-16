@@ -41,7 +41,7 @@ type Instruction = Left | Right | Forward
 
 type alias Model =
     { input  : String
-    , output : List (Html Msg)
+    , output : List String
     , robot  : Robot
     , scents : List Scent
     , grid   : Grid
@@ -51,7 +51,7 @@ type alias Model =
 initialModel : Model
 initialModel =
     { input  = "5 3\n1 1 E\nRFRFRFRF\n\n3 2 N\nFRRFLLFFRRFLL\n\n0 3 W\nLLFFFLFLFL\n\n"
-    , output = [text ""]
+    , output = []
     , robot  = ( False, 0, 0, North )
     , scents = []
     , grid   = ( 0, 0 )
@@ -80,7 +80,7 @@ update msg model =
             ( { initialModel | input = s }, parse1stLine s )
 
         ChangeOutput ( s, nextInput ) ->
-            ( { model | output = model.output ++ [text s, br [] []] }
+            ( { model | output = model.output ++ [s] }
             , if String.isEmpty nextInput then
                 Cmd.none
               else
@@ -254,10 +254,10 @@ out model =
 -- VIEW
 
 view : Model -> Html Msg
-view ({input, output} as model) =
+view {input, output} =
     div []
         [ textarea [ onInput ChangeInput, rows 20 ] [ text input ]
-        , p [] output
+        , p [] <| List.intersperse (br[][]) (List.map text output)
         ]
 
 
