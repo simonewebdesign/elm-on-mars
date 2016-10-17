@@ -62,8 +62,7 @@ initialModel =
 type alias Input = String
 
 type Msg
-    = NoOp
-    | ChangeInput Input
+    = ChangeInput Input
     | ChangeOutput ( Input, Input )
     | SetGrid ( Grid, Input )
     | SetRobot ( Robot, Input )
@@ -74,8 +73,6 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case Debug.log "m" msg of
-        NoOp -> ( model, Cmd.none )
-
         ChangeInput s ->
             ( { initialModel | input = s }, parse1stLine s )
 
@@ -165,7 +162,7 @@ update msg model =
 
 parse1stLine : String -> Cmd Msg
 parse1stLine str =
-    Task.perform (always NoOp) SetGrid (parseCoordsTask str)
+    performFailproof SetGrid (parseCoordsTask str)
 
 
 parseCoordsTask : String -> Task Never ( Grid, String )
@@ -186,7 +183,7 @@ parseCoords str =
 
 parse2ndLine : String -> Cmd Msg
 parse2ndLine str =
-    Task.perform (always NoOp) SetRobot (parseRobotTask str)
+    performFailproof SetRobot (parseRobotTask str)
 
 
 parseRobotTask : String -> Task Never ( Robot, String )
@@ -207,7 +204,7 @@ parseRobot str =
 
 parse3rdLine : String -> Cmd Msg
 parse3rdLine str =
-    Task.perform (always NoOp) ProcessInstructions (parseInstructionsTask str)
+    performFailproof ProcessInstructions (parseInstructionsTask str)
 
 
 parseInstructionsTask : String -> Task Never ( (List Instruction), Input )
@@ -228,7 +225,7 @@ parseInstructions str =
 
 setOutput : Model -> Input -> Cmd Msg
 setOutput model input =
-    Task.perform (always NoOp) ChangeOutput (newOutput model input)
+    performFailproof ChangeOutput (newOutput model input)
 
 
 newOutput : Model -> Input -> Task Never ( String, Input )
@@ -314,3 +311,14 @@ toInstruction c =
         'R' -> Right
         'F' -> Forward
         _ -> Debug.crash "wat"
+
+
+{-| from https://github.com/NoRedInk/elm-task-extra/blob/2.0.0/src/Task/Extra.elm#L79 -}
+performFailproof : (a -> msg) -> Task Never a -> Cmd msg
+performFailproof =
+    Task.perform never
+
+{-| from http://package.elm-lang.org/packages/elm-community/basics-extra: -}
+never : Never -> a
+never n =
+    never n
