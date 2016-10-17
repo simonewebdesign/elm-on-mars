@@ -1,251 +1,172 @@
 module App exposing (..)
 
-import String
 import Html exposing (Html, div, textarea, p, text, br)
 import Html.Attributes exposing (rows)
 import Html.App
 import Html.Events exposing (onInput)
+
 import Task exposing (Task)
-import Combine exposing (Parser, manyTill)
+
+import Combine exposing (Parser, manyTill, sepBy1)
 import Combine.Infix exposing (..)
-import Combine.Char exposing (newline, space, oneOf)
+import Combine.Char exposing (newline, space, oneOf, eol)
 import Combine.Num exposing (int)
 
 
 main : Program Never
 main =
     Html.App.program
-        { init = ( initialModel, parse1stLine initialModel.input )
+        { init = ( initialModel, Cmd.none )
         , view = view
         , update = update
-        , subscriptions = always Sub.none
-        }
+        , subscriptions = always Sub.none }
 
 
 -- TYPES
 
 type alias Grid = ( Int, Int )
-
+-- record and coords tuple
 type alias Robot = ( Lost, Int, Int, Orientation )
 
 type alias Scent = ( Int, Int, Orientation )
 
 type alias Lost = Bool
 
+type alias Instructions = List Instruction
+
 type Orientation = North | South | East | West
 
 type Instruction = Left | Right | Forward
 
+type alias ProgramInput = ( Grid, List ( Robot, Instructions ) )
 
 -- MODEL
 
 type alias Model =
     { input  : String
-    , output : List String
-    , robot  : Robot
-    , scents : List Scent
-    , grid   : Grid
-    }
-
+    , output : List String }
 
 initialModel : Model
 initialModel =
     { input  = "5 3\n1 1 E\nRFRFRFRF\n\n3 2 N\nFRRFLLFFRRFLL\n\n0 3 W\nLLFFFLFLFL\n\n"
-    , output = []
-    , robot  = ( False, 0, 0, North )
-    , scents = []
-    , grid   = ( 0, 0 )
-    }
+    , output = [] }
+
 
 -- UPDATE
 
-type alias Input = String
-
 type Msg
-    = ChangeInput Input
-    | ChangeOutput ( Input, Input )
-    | SetGrid ( Grid, Input )
-    | SetRobot ( Robot, Input )
-    | ProcessInstructions ( (List Instruction), Input )
-    | ProcessInstruction Instruction
+    = NoOp
+    | ChangeInput String
+    | ChangeOutput (List String)
+    | Parsed (Result String ProgramInput)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case Debug.log "m" msg of
-        ChangeInput s ->
-            ( { initialModel | input = s }, parse1stLine s )
+    case msg of
+        NoOp -> ( model, Cmd.none )
 
-        ChangeOutput ( s, nextInput ) ->
-            ( { model | output = model.output ++ [s] }
-            , if String.isEmpty nextInput then
-                Cmd.none
-              else
-                parse2ndLine nextInput
+        ChangeInput str ->
+            ( { initialModel | input = str }
+            , Task.perform (always NoOp) Parsed (parseProgramInput str)
             )
 
-        SetGrid ( coords, nextInput ) ->
-            ( { model | grid = coords }, parse2ndLine nextInput )
+        ChangeOutput str ->
+            ( model, Cmd.none )
 
-        SetRobot ( initialPos, nextInput ) ->
-            ( { model | robot = initialPos }, parse3rdLine nextInput )
-
-        ProcessInstructions (( list, nextInput ) as instructions) ->
-            case list of
-                [] ->
-                    update (ChangeOutput ( out model, nextInput )) model
-
-                instruction :: tail ->
+        Parsed result ->
+            case result of
+                Err msg -> ( { model | output = [msg] }, Cmd.none )
+                Ok ( ( x, y ), pairs ) ->
                     let
-                        ( newModel, _ ) = update (ProcessInstruction instruction) model
-                    in
-                        update (ProcessInstructions ( tail, nextInput )) newModel
+                        newOutput : List String
+                        newOutput =
+                            List.map toStringRobot newRobots
 
-        ProcessInstruction instruction ->
-            let
-                ( isLost, x, y, z ) = model.robot
-            in
-                case instruction of
-                    Left ->
-                        let
-                            newOrientation =
-                                case z of
-                                    North -> West
-                                    South -> East
-                                    East -> North
-                                    West -> South
-                        in
-                            ( { model | robot = ( isLost, x, y, newOrientation ) }, Cmd.none )
+                        newRobots : List Robot
+                        newRobots =
+                            List.foldl processPair ( [], [] ) pairs
+                            |> fst
 
-                    Right ->
-                        let
-                            newOrientation =
-                                case z of
-                                    North -> East
-                                    South -> West
-                                    East -> South
-                                    West -> North
-                        in
-                            ( { model | robot = ( isLost, x, y, newOrientation ) }, Cmd.none )
+                        processPair : ( Robot, List Instruction ) -> ( List Robot, List Scent ) -> ( List Robot, List Scent )
+                        processPair ( robot, instructions ) ( robotsAcc, scents ) =
+                            let
+                                ( newRobot, newScents ) = List.foldl process ( robot, scents ) instructions
+                            in
+                                ( robotsAcc ++ [newRobot], scents ++ newScents )
 
-                    Forward ->
-                        let
-                            newX =
-                                case z of
-                                    East -> x + 1
-                                    West -> x - 1
-                                    _ -> x
+                        process : Instruction -> ( Robot, List Scent ) -> ( Robot, List Scent )
+                        process instruction ( (( isLost, a, b, c ) as robot), scents ) =
+                            case instruction of
+                                Forward ->
+                                    let
+                                        a' =
+                                            case c of
+                                                East -> a + 1
+                                                West -> a - 1
+                                                _ -> a
+                                        b' =
+                                            case c of
+                                                North -> b + 1
+                                                South -> b - 1
+                                                _ -> b
 
-                            newY =
-                                case z of
-                                    North -> y + 1
-                                    South -> y - 1
-                                    _ -> y
+                                        inScent = List.member ( a, b, c ) scents
 
-                            inScent = List.member ( x, y, z ) model.scents
+                                        outOfBounds =
+                                            a' > x || b' > y || a' < 0 || b' < 0
+                                    in
+                                        if inScent then
+                                            ( robot, scents )
 
-                            outOfBounds =
-                                newX > fst model.grid || newY > snd model.grid ||
-                                newX < 0 || newY < 0
-                        in
-                            if inScent then
-                                ( model, Cmd.none )
-                            else if outOfBounds then
-                                ( { model
-                                    | robot = ( True, newX, newY, z )
-                                    , scents = ( x, y, z ) :: model.scents }
-                                , Cmd.none
-                                )
-                            else
-                                ( { model | robot = ( isLost, newX, newY, z ) }, Cmd.none )
+                                        else if outOfBounds then
+                                            ( ( True, a', b', c ), ( a, b, c ) :: scents )
+
+                                        else
+                                            ( ( isLost, a', b', c ), scents )
+
+                                _ ->
+                                    ( ( isLost, a, b, turn instruction c ), scents )
+                in
+                    ( { model | output = newOutput }, Cmd.none )
 
 
-parse1stLine : String -> Cmd Msg
-parse1stLine str =
-    performFailproof SetGrid (parseCoordsTask str)
+parseProgramInput : String -> Task Never (Result String ProgramInput)
+parseProgramInput str =
+    Task.succeed (parse str)
 
 
-parseCoordsTask : String -> Task Never ( Grid, String )
-parseCoordsTask str =
-    Task.succeed (parseCoords str)
-    |> Task.map (Result.withDefault ( initialModel.grid, "" ))
+parse : String -> Result String ProgramInput
+parse str =
+    case Combine.parse programInput str of
+        ( Ok parsed, _ ) -> Ok parsed
+        ( Err msg, _ ) -> Err <| "parse error: " ++ toString msg
 
 
-parseCoords : String -> Result String ( Grid, String )
-parseCoords str =
-    case Combine.parse coords str of
-        (( Ok parsed, {input} ) as res) ->
-            Ok ( parsed, input )
+turn : Instruction -> Orientation -> Orientation
+turn instruction orientation =
+    case instruction of
+        Left ->
+            case orientation of
+                North -> West
+                South -> East
+                East -> North
+                West -> South
 
-        ( Err msg, ctx ) ->
-            Err <| "parse error: " ++ toString msg
+        Right ->
+            case orientation of
+                North -> East
+                South -> West
+                East -> South
+                West -> North
 
-
-parse2ndLine : String -> Cmd Msg
-parse2ndLine str =
-    performFailproof SetRobot (parseRobotTask str)
-
-
-parseRobotTask : String -> Task Never ( Robot, String )
-parseRobotTask str =
-    Task.succeed (parseRobot str)
-    |> Task.map (Result.withDefault ( initialModel.robot, "" ))
-
-
-parseRobot : String -> Result String ( Robot, String )
-parseRobot str =
-     case Combine.parse position str of
-        ( Ok parsed, {input} ) ->
-            Ok ( parsed, input )
-
-        ( Err msg, ctx ) ->
-            Err <| "parse error: " ++ toString msg
+        Forward -> orientation
 
 
-parse3rdLine : String -> Cmd Msg
-parse3rdLine str =
-    performFailproof ProcessInstructions (parseInstructionsTask str)
-
-
-parseInstructionsTask : String -> Task Never ( (List Instruction), Input )
-parseInstructionsTask str =
-    Task.succeed (parseInstructions str)
-    |> Task.map (Result.withDefault ( [], "" ))
-
-
-parseInstructions : String -> Result String ( (List Instruction), Input )
-parseInstructions str =
-     case Combine.parse instructions str of
-        ( Ok parsed, {input} ) ->
-            Ok ( parsed, input )
-
-        ( Err msg, ctx ) ->
-            Err <| "parse error: " ++ toString msg
-
-
-setOutput : Model -> Input -> Cmd Msg
-setOutput model input =
-    performFailproof ChangeOutput (newOutput model input)
-
-
-newOutput : Model -> Input -> Task Never ( String, Input )
-newOutput model input =
-    let
-        ( _, x, y, z ) = model.robot
-    in
-        (Task.succeed <| out model)
-        |> Task.map (\str -> ( str, input ))
-
-{-| This function figures out how to print the answer based on the model. -}
-out : Model -> String
-out model =
-    let
-        ( isLost, x, y, z ) = model.robot
-        ( gridX, gridY ) = model.grid
-    in
-        toString x ++ " " ++ toString y ++ " "
-        ++ String.fromChar (toCharOrientation z)
-        ++ if isLost then " LOST" else ""
+toStringRobot : Robot -> String
+toStringRobot ( isLost, x, y, z ) =
+    toString x ++ " " ++ toString y ++ " " ++ toStringOrientation z
+    ++ if isLost then " LOST" else ""
 
 
 -- VIEW
@@ -260,20 +181,31 @@ view {input, output} =
 
 -- PARSING
 
-coords : Parser Grid
-coords =
-    (,) <$> int <* space <*> int <* newline
+programInput : Parser ProgramInput
+programInput =
+    (,) <$> grid <* newline
+        <*> sepBy1 newline pair
+
+
+pair : Parser ( Robot, Instructions )
+pair =
+    (,) <$> position <* newline
+        <*> instructions
+
+
+grid : Parser Grid
+grid =
+    (,) <$> int <* space <*> int
 
 
 position : Parser Robot
 position =
-    (,,,) False <$> int <* space <*> int <* space <*> orientation <* newline
+    (,,,) False <$> int <* space <*> int <* space <*> orientation
 
 
 orientation : Parser Orientation
 orientation =
     toOrientation <$> oneOf ['N', 'S', 'E', 'W']
-
 
 toOrientation : Char -> Orientation
 toOrientation c =
@@ -284,25 +216,22 @@ toOrientation c =
         'W' -> West
         _ -> Debug.crash "wat"
 
-
-toCharOrientation : Orientation -> Char
-toCharOrientation i =
+toStringOrientation : Orientation -> String
+toStringOrientation i =
     case i of
-        North -> 'N'
-        South -> 'S'
-        East -> 'E'
-        West -> 'W'
+        North -> "N"
+        South -> "S"
+        East -> "E"
+        West -> "W"
 
 
-instructions : Parser (List Instruction)
+instructions : Parser Instructions
 instructions =
-    manyTill instruction newline <* newline
-
+    manyTill instruction (newline <|> eol)
 
 instruction : Parser Instruction
 instruction =
     toInstruction <$> oneOf ['L', 'R', 'F']
-
 
 toInstruction : Char -> Instruction
 toInstruction c =
