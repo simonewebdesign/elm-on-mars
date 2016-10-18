@@ -2,10 +2,8 @@ module App exposing (..)
 
 import Html exposing (Html, div, textarea, p, text, br)
 import Html.Attributes exposing (rows)
-import Html.App
+import Html.App as Html
 import Html.Events exposing (onInput)
-
-import Task exposing (Task)
 
 import Combine exposing (Parser, manyTill, sepBy1)
 import Combine.Infix exposing (..)
@@ -15,11 +13,7 @@ import Combine.Num exposing (int)
 
 main : Program Never
 main =
-    Html.App.program
-        { init = ( initialModel, Cmd.none )
-        , view = view
-        , update = update
-        , subscriptions = always Sub.none }
+    Html.beginnerProgram { model = initialModel, view = view, update = update }
 
 
 -- TYPES
@@ -54,86 +48,73 @@ initialModel =
 
 -- UPDATE
 
-type Msg
-    = NoOp
-    | ChangeInput String
-    | ChangeOutput (List String)
-    | Parsed (Result String ProgramInput)
+type Msg = Change String
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
+update : Msg -> Model -> Model
 update msg model =
     case msg of
-        NoOp -> ( model, Cmd.none )
+        Change str ->
+            parse str
+            |> handleInput model str
 
-        ChangeInput str ->
-            ( { initialModel | input = str }
-            , Task.perform (always NoOp) Parsed (parseProgramInput str)
-            )
 
-        ChangeOutput str ->
-            ( model, Cmd.none )
+handleInput : Model -> String -> (Result String ProgramInput) -> Model
+handleInput model newInput result =
+    case result of
+        Err msg -> { model | output = [msg] }
+        Ok ( ( x, y ), pairs ) ->
+            let
+                newOutput : List String
+                newOutput =
+                    List.map toStringRobot newRobots
 
-        Parsed result ->
-            case result of
-                Err msg -> ( { model | output = [msg] }, Cmd.none )
-                Ok ( ( x, y ), pairs ) ->
+                newRobots : List Robot
+                newRobots =
+                    List.foldl processPair ( [], [] ) pairs
+                    |> fst
+
+                processPair : ( Robot, List Instruction ) -> ( List Robot, List Scent ) -> ( List Robot, List Scent )
+                processPair ( robot, instructions ) ( robotsAcc, scents ) =
                     let
-                        newOutput : List String
-                        newOutput =
-                            List.map toStringRobot newRobots
+                        ( newRobot, newScents ) = List.foldl process ( robot, scents ) instructions
+                    in
+                        ( robotsAcc ++ [newRobot], scents ++ newScents )
 
-                        newRobots : List Robot
-                        newRobots =
-                            List.foldl processPair ( [], [] ) pairs
-                            |> fst
-
-                        processPair : ( Robot, List Instruction ) -> ( List Robot, List Scent ) -> ( List Robot, List Scent )
-                        processPair ( robot, instructions ) ( robotsAcc, scents ) =
+                process : Instruction -> ( Robot, List Scent ) -> ( Robot, List Scent )
+                process instruction ( (( isLost, a, b, c ) as robot), scents ) =
+                    case instruction of
+                        Forward ->
                             let
-                                ( newRobot, newScents ) = List.foldl process ( robot, scents ) instructions
+                                a' =
+                                    case c of
+                                        East -> a + 1
+                                        West -> a - 1
+                                        _ -> a
+                                b' =
+                                    case c of
+                                        North -> b + 1
+                                        South -> b - 1
+                                        _ -> b
+
+                                inScent = List.member ( a, b, c ) scents
+
+                                outOfBounds =
+                                    a' > x || b' > y || a' < 0 || b' < 0
                             in
-                                ( robotsAcc ++ [newRobot], scents ++ newScents )
+                                if inScent then
+                                    ( robot, scents )
 
-                        process : Instruction -> ( Robot, List Scent ) -> ( Robot, List Scent )
-                        process instruction ( (( isLost, a, b, c ) as robot), scents ) =
-                            case instruction of
-                                Forward ->
-                                    let
-                                        a' =
-                                            case c of
-                                                East -> a + 1
-                                                West -> a - 1
-                                                _ -> a
-                                        b' =
-                                            case c of
-                                                North -> b + 1
-                                                South -> b - 1
-                                                _ -> b
+                                else if outOfBounds then
+                                    ( ( True, a', b', c ), ( a, b, c ) :: scents )
 
-                                        inScent = List.member ( a, b, c ) scents
+                                else
+                                    ( ( isLost, a', b', c ), scents )
 
-                                        outOfBounds =
-                                            a' > x || b' > y || a' < 0 || b' < 0
-                                    in
-                                        if inScent then
-                                            ( robot, scents )
-
-                                        else if outOfBounds then
-                                            ( ( True, a', b', c ), ( a, b, c ) :: scents )
-
-                                        else
-                                            ( ( isLost, a', b', c ), scents )
-
-                                _ ->
-                                    ( ( isLost, a, b, turn instruction c ), scents )
-                in
-                    ( { model | output = newOutput }, Cmd.none )
-
-
-parseProgramInput : String -> Task Never (Result String ProgramInput)
-parseProgramInput str =
-    Task.succeed (parse str)
+                        _ ->
+                            ( ( isLost, a, b, turn instruction c ), scents )
+            in
+                { model | input = newInput, output = newOutput }
 
 
 parse : String -> Result String ProgramInput
@@ -174,7 +155,7 @@ toStringRobot ( isLost, x, y, z ) =
 view : Model -> Html Msg
 view {input, output} =
     div []
-        [ textarea [ onInput ChangeInput, rows 20 ] [ text input ]
+        [ textarea [ onInput Change, rows 20 ] [ text input ]
         , p [] <| List.intersperse (br[][]) (List.map text output)
         ]
 
@@ -240,14 +221,3 @@ toInstruction c =
         'R' -> Right
         'F' -> Forward
         _ -> Debug.crash "wat"
-
-
-{-| from https://github.com/NoRedInk/elm-task-extra/blob/2.0.0/src/Task/Extra.elm#L79 -}
-performFailproof : (a -> msg) -> Task Never a -> Cmd msg
-performFailproof =
-    Task.perform never
-
-{-| from http://package.elm-lang.org/packages/elm-community/basics-extra: -}
-never : Never -> a
-never n =
-    never n
