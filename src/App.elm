@@ -10,29 +10,12 @@ import Combine.Infix exposing (..)
 import Combine.Char exposing (newline, space, oneOf, eol)
 import Combine.Num exposing (int)
 
+import Types exposing (..)
 
 main : Program Never
 main =
     Html.beginnerProgram { model = initialModel, view = view, update = update }
 
-
--- TYPES
-
-type alias Grid = ( Int, Int )
--- record and coords tuple
-type alias Robot = ( Lost, Int, Int, Orientation )
-
-type alias Scent = ( Int, Int, Orientation )
-
-type alias Lost = Bool
-
-type alias Instructions = List Instruction
-
-type Orientation = North | South | East | West
-
-type Instruction = Left | Right | Forward
-
-type alias ProgramInput = ( Grid, List ( Robot, Instructions ) )
 
 -- MODEL
 
@@ -49,7 +32,6 @@ initialModel =
 -- UPDATE
 
 type Msg = Change String
-
 
 update : Msg -> Model -> Model
 update msg model =
