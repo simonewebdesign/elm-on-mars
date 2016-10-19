@@ -55,19 +55,16 @@ handleInput model newInput result =
             let
                 newOutput : List String
                 newOutput =
-                    List.map toStringRobot newRobots
-
-                newRobots : List Robot
-                newRobots =
                     List.foldl processPair ( [], [] ) pairs
                     |> fst
+                    |> List.map toStringRobot
 
                 processPair : ( Robot, List Instruction ) -> ( List Robot, List Scent ) -> ( List Robot, List Scent )
-                processPair ( robot, instructions ) ( robotsAcc, scents ) =
+                processPair ( robot, instructions ) ( robots, scents ) =
                     let
                         ( newRobot, newScents ) = List.foldl process ( robot, scents ) instructions
                     in
-                        ( robotsAcc ++ [newRobot], scents ++ newScents )
+                        ( robots ++ [newRobot], scents ++ newScents )
 
                 process : Instruction -> ( Robot, List Scent ) -> ( Robot, List Scent )
                 process instruction ( (( isLost, a, b, c ) as robot), scents ) =
