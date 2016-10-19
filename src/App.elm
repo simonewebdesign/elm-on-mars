@@ -23,6 +23,16 @@ initialModel =
     , output = [] }
 
 
+-- VIEW
+
+view : Model -> Html Msg
+view {input, output} =
+    div []
+        [ textarea [ onInput Change, rows 20 ] [ text input ]
+        , p [] <| List.intersperse (br[][]) (List.map text output)
+        ]
+
+
 -- UPDATE
 
 type Msg = Change String
@@ -117,13 +127,3 @@ toStringRobot : Robot -> String
 toStringRobot ( isLost, x, y, z ) =
     toString x ++ " " ++ toString y ++ " " ++ toStringOrientation z
     ++ if isLost then " LOST" else ""
-
-
--- VIEW
-
-view : Model -> Html Msg
-view {input, output} =
-    div []
-        [ textarea [ onInput Change, rows 20 ] [ text input ]
-        , p [] <| List.intersperse (br[][]) (List.map text output)
-        ]
