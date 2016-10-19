@@ -1,9 +1,11 @@
 module App exposing (..)
 
+import String exposing (left)
 import Html exposing (Html, div, textarea, p, text, br)
 import Html.Attributes exposing (rows)
 import Html.App as Html
 import Html.Events exposing (onInput)
+import Parser exposing (parse)
 import Types exposing (..)
 
 main : Program Never
@@ -124,6 +126,11 @@ turn instruction orientation =
 
 
 toStringRobot : Robot -> String
-toStringRobot ( isLost, x, y, z ) =
-    toString x ++ " " ++ toString y ++ " " ++ toStringOrientation z
+toStringRobot ( isLost, a, b, c ) =
+    toString a ++ " " ++ toString b ++ " " ++ initial c
     ++ if isLost then " LOST" else ""
+
+
+initial : a -> String
+initial a =
+    a |> toString |> left 1

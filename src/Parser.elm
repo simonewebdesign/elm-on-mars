@@ -48,14 +48,6 @@ toOrientation c =
         'W' -> West
         _ -> Debug.crash "wat"
 
-toStringOrientation : Orientation -> String
-toStringOrientation i =
-    case i of
-        North -> "N"
-        South -> "S"
-        East -> "E"
-        West -> "W"
-
 
 instructions : Parser Instructions
 instructions =
