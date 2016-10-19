@@ -27,11 +27,28 @@ Then view it:
 
     elm reactor
 
-### Running the tests
+### Running the test suite
 
 Make sure you have Node.js installed, then run:
 
     elm test
+
+You should see something like:
+
+    Success! Compiled 1 module.
+    Successfully generated /var/folders/pd/4y9l5m_517zdg1bj0l9szg4r0000gn/T/elm_test_116919-19066-mppg8p.o95uq5mi.js
+
+    elm-test
+    --------
+
+    Running 14 tests. To reproduce these results, run: elm-test --seed 1383778577
+
+
+    TEST RUN PASSED
+
+    Duration: 29 ms
+    Passed:   14
+    Failed:   0
 
 
 ## The Problem
@@ -89,8 +106,10 @@ should be printed after the position and orientation.
 5 3
 1 1 E
 RFRFRFRF
+
 3 2 N
 FRRFLLFFRRFLL
+
 0 3 W
 LLFFFLFLFL
 ```
@@ -102,3 +121,9 @@ LLFFFLFLFL
 3 3 N LOST
 2 3 S
 ```
+
+## Takeaways
+
+- `Html msg` are introspectable via `Debug.log`, but you can't query them
+- `Cmd msg` are not yet testable. You can do end-to-end testing only if you don't have side effects at all.
+- [elm-combine](https://github.com/Bogdanp/elm-combine) is amazing!
