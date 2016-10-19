@@ -40,16 +40,8 @@ view {input, output} =
 type Msg = Change String
 
 update : Msg -> Model -> Model
-update msg model =
-    case msg of
-        Change str ->
-            parse str
-            |> handleInput model str
-
-
-handleInput : Model -> String -> (Result String ProgramInput) -> Model
-handleInput model newInput result =
-    case result of
+update (Change newInput) model =
+    case parse newInput of
         Err msg -> { model | output = [msg] }
         Ok ( ( x, y ), pairs ) ->
             let
