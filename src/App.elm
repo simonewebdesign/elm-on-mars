@@ -71,16 +71,7 @@ handleInput model newInput result =
                     case instruction of
                         Forward ->
                             let
-                                a' =
-                                    case c of
-                                        East -> a + 1
-                                        West -> a - 1
-                                        _ -> a
-                                b' =
-                                    case c of
-                                        North -> b + 1
-                                        South -> b - 1
-                                        _ -> b
+                                ( a', b' ) = forward a b c
 
                                 inScent = List.member ( a, b, c ) scents
 
@@ -100,6 +91,23 @@ handleInput model newInput result =
                             ( ( isLost, a, b, turn instruction c ), scents )
             in
                 { model | input = newInput, output = newOutput }
+
+
+forward : Int -> Int -> Orientation -> ( Int, Int )
+forward a b c =
+    let
+        a' =
+            case c of
+                East -> a + 1
+                West -> a - 1
+                _ -> a
+        b' =
+            case c of
+                North -> b + 1
+                South -> b - 1
+                _ -> b
+    in
+        ( a', b' )
 
 
 turn : Instruction -> Orientation -> Orientation
