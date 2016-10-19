@@ -34,6 +34,11 @@ all =
 
         -- UNIT TESTS
 
+        , test "forward" <| \() -> Expect.equal ( 1, 3 ) (App.forward 1 2 North )
+        , test "forward" <| \() -> Expect.equal ( 2, 2 ) (App.forward 1 2 East )
+        , test "forward" <| \() -> Expect.equal ( 1, 1 ) (App.forward 1 2 South )
+        , test "forward" <| \() -> Expect.equal ( 0, 2 ) (App.forward 1 2 West )
+
         , test "turn left" <| \() -> Expect.equal West (App.turn Left North)
         , test "turn right" <| \() -> Expect.equal East (App.turn Right North)
         , test "go forward" <| \() -> Expect.equal North (App.turn Forward North)
