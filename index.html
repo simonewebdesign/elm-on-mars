@@ -5265,238 +5265,6 @@ var _elm_lang$core$Array$repeat = F2(
 			_elm_lang$core$Basics$always(e));
 	});
 var _elm_lang$core$Array$Array = {ctor: 'Array'};
-var _elm_lang$core$Task$onError = _elm_lang$core$Native_Scheduler.onError;
-var _elm_lang$core$Task$andThen = _elm_lang$core$Native_Scheduler.andThen;
-var _elm_lang$core$Task$spawnCmd = F2(
-	function (router, _p0) {
-		var _p1 = _p0;
-		return _elm_lang$core$Native_Scheduler.spawn(
-			A2(
-				_elm_lang$core$Task$andThen,
-				_p1._0,
-				_elm_lang$core$Platform$sendToApp(router)));
-	});
-var _elm_lang$core$Task$fail = _elm_lang$core$Native_Scheduler.fail;
-var _elm_lang$core$Task$mapError = F2(
-	function (f, task) {
-		return A2(
-			_elm_lang$core$Task$onError,
-			task,
-			function (err) {
-				return _elm_lang$core$Task$fail(
-					f(err));
-			});
-	});
-var _elm_lang$core$Task$succeed = _elm_lang$core$Native_Scheduler.succeed;
-var _elm_lang$core$Task$map = F2(
-	function (func, taskA) {
-		return A2(
-			_elm_lang$core$Task$andThen,
-			taskA,
-			function (a) {
-				return _elm_lang$core$Task$succeed(
-					func(a));
-			});
-	});
-var _elm_lang$core$Task$map2 = F3(
-	function (func, taskA, taskB) {
-		return A2(
-			_elm_lang$core$Task$andThen,
-			taskA,
-			function (a) {
-				return A2(
-					_elm_lang$core$Task$andThen,
-					taskB,
-					function (b) {
-						return _elm_lang$core$Task$succeed(
-							A2(func, a, b));
-					});
-			});
-	});
-var _elm_lang$core$Task$map3 = F4(
-	function (func, taskA, taskB, taskC) {
-		return A2(
-			_elm_lang$core$Task$andThen,
-			taskA,
-			function (a) {
-				return A2(
-					_elm_lang$core$Task$andThen,
-					taskB,
-					function (b) {
-						return A2(
-							_elm_lang$core$Task$andThen,
-							taskC,
-							function (c) {
-								return _elm_lang$core$Task$succeed(
-									A3(func, a, b, c));
-							});
-					});
-			});
-	});
-var _elm_lang$core$Task$map4 = F5(
-	function (func, taskA, taskB, taskC, taskD) {
-		return A2(
-			_elm_lang$core$Task$andThen,
-			taskA,
-			function (a) {
-				return A2(
-					_elm_lang$core$Task$andThen,
-					taskB,
-					function (b) {
-						return A2(
-							_elm_lang$core$Task$andThen,
-							taskC,
-							function (c) {
-								return A2(
-									_elm_lang$core$Task$andThen,
-									taskD,
-									function (d) {
-										return _elm_lang$core$Task$succeed(
-											A4(func, a, b, c, d));
-									});
-							});
-					});
-			});
-	});
-var _elm_lang$core$Task$map5 = F6(
-	function (func, taskA, taskB, taskC, taskD, taskE) {
-		return A2(
-			_elm_lang$core$Task$andThen,
-			taskA,
-			function (a) {
-				return A2(
-					_elm_lang$core$Task$andThen,
-					taskB,
-					function (b) {
-						return A2(
-							_elm_lang$core$Task$andThen,
-							taskC,
-							function (c) {
-								return A2(
-									_elm_lang$core$Task$andThen,
-									taskD,
-									function (d) {
-										return A2(
-											_elm_lang$core$Task$andThen,
-											taskE,
-											function (e) {
-												return _elm_lang$core$Task$succeed(
-													A5(func, a, b, c, d, e));
-											});
-									});
-							});
-					});
-			});
-	});
-var _elm_lang$core$Task$andMap = F2(
-	function (taskFunc, taskValue) {
-		return A2(
-			_elm_lang$core$Task$andThen,
-			taskFunc,
-			function (func) {
-				return A2(
-					_elm_lang$core$Task$andThen,
-					taskValue,
-					function (value) {
-						return _elm_lang$core$Task$succeed(
-							func(value));
-					});
-			});
-	});
-var _elm_lang$core$Task$sequence = function (tasks) {
-	var _p2 = tasks;
-	if (_p2.ctor === '[]') {
-		return _elm_lang$core$Task$succeed(
-			_elm_lang$core$Native_List.fromArray(
-				[]));
-	} else {
-		return A3(
-			_elm_lang$core$Task$map2,
-			F2(
-				function (x, y) {
-					return A2(_elm_lang$core$List_ops['::'], x, y);
-				}),
-			_p2._0,
-			_elm_lang$core$Task$sequence(_p2._1));
-	}
-};
-var _elm_lang$core$Task$onEffects = F3(
-	function (router, commands, state) {
-		return A2(
-			_elm_lang$core$Task$map,
-			function (_p3) {
-				return {ctor: '_Tuple0'};
-			},
-			_elm_lang$core$Task$sequence(
-				A2(
-					_elm_lang$core$List$map,
-					_elm_lang$core$Task$spawnCmd(router),
-					commands)));
-	});
-var _elm_lang$core$Task$toMaybe = function (task) {
-	return A2(
-		_elm_lang$core$Task$onError,
-		A2(_elm_lang$core$Task$map, _elm_lang$core$Maybe$Just, task),
-		function (_p4) {
-			return _elm_lang$core$Task$succeed(_elm_lang$core$Maybe$Nothing);
-		});
-};
-var _elm_lang$core$Task$fromMaybe = F2(
-	function ($default, maybe) {
-		var _p5 = maybe;
-		if (_p5.ctor === 'Just') {
-			return _elm_lang$core$Task$succeed(_p5._0);
-		} else {
-			return _elm_lang$core$Task$fail($default);
-		}
-	});
-var _elm_lang$core$Task$toResult = function (task) {
-	return A2(
-		_elm_lang$core$Task$onError,
-		A2(_elm_lang$core$Task$map, _elm_lang$core$Result$Ok, task),
-		function (msg) {
-			return _elm_lang$core$Task$succeed(
-				_elm_lang$core$Result$Err(msg));
-		});
-};
-var _elm_lang$core$Task$fromResult = function (result) {
-	var _p6 = result;
-	if (_p6.ctor === 'Ok') {
-		return _elm_lang$core$Task$succeed(_p6._0);
-	} else {
-		return _elm_lang$core$Task$fail(_p6._0);
-	}
-};
-var _elm_lang$core$Task$init = _elm_lang$core$Task$succeed(
-	{ctor: '_Tuple0'});
-var _elm_lang$core$Task$onSelfMsg = F3(
-	function (_p9, _p8, _p7) {
-		return _elm_lang$core$Task$succeed(
-			{ctor: '_Tuple0'});
-	});
-var _elm_lang$core$Task$command = _elm_lang$core$Native_Platform.leaf('Task');
-var _elm_lang$core$Task$T = function (a) {
-	return {ctor: 'T', _0: a};
-};
-var _elm_lang$core$Task$perform = F3(
-	function (onFail, onSuccess, task) {
-		return _elm_lang$core$Task$command(
-			_elm_lang$core$Task$T(
-				A2(
-					_elm_lang$core$Task$onError,
-					A2(_elm_lang$core$Task$map, onSuccess, task),
-					function (x) {
-						return _elm_lang$core$Task$succeed(
-							onFail(x));
-					})));
-	});
-var _elm_lang$core$Task$cmdMap = F2(
-	function (tagger, _p10) {
-		var _p11 = _p10;
-		return _elm_lang$core$Task$T(
-			A2(_elm_lang$core$Task$map, tagger, _p11._0));
-	});
-_elm_lang$core$Native_Platform.effectManagers['Task'] = {pkg: 'elm-lang/core', init: _elm_lang$core$Task$init, onEffects: _elm_lang$core$Task$onEffects, onSelfMsg: _elm_lang$core$Task$onSelfMsg, tag: 'cmd', cmdMap: _elm_lang$core$Task$cmdMap};
 var _elm_lang$core$Dict$foldr = F3(
 	function (f, acc, t) {
 		foldr:
@@ -9197,140 +8965,70 @@ var _elm_lang$html$Html_Events$Options = F2(
 	function (a, b) {
 		return {stopPropagation: a, preventDefault: b};
 	});
-var _user$project$App$toCharOrientation = function (i) {
-	var _p0 = i;
-	switch (_p0.ctor) {
-		case 'North':
-			return _elm_lang$core$Native_Utils.chr('N');
-		case 'South':
-			return _elm_lang$core$Native_Utils.chr('S');
-		case 'East':
-			return _elm_lang$core$Native_Utils.chr('E');
-		default:
-			return _elm_lang$core$Native_Utils.chr('W');
-	}
-};
-var _user$project$App$coords = A2(
-	_Bogdanp$elm_combine$Combine_Infix_ops['<*'],
-	A2(
-		_Bogdanp$elm_combine$Combine_Infix_ops['<*>'],
-		A2(
-			_Bogdanp$elm_combine$Combine_Infix_ops['<*'],
-			A2(
-				_Bogdanp$elm_combine$Combine_Infix_ops['<$>'],
-				F2(
-					function (v0, v1) {
-						return {ctor: '_Tuple2', _0: v0, _1: v1};
-					}),
-				_Bogdanp$elm_combine$Combine_Num$int),
-			_Bogdanp$elm_combine$Combine_Char$space),
-		_Bogdanp$elm_combine$Combine_Num$int),
-	_Bogdanp$elm_combine$Combine_Char$newline);
-var _user$project$App$out = function (model) {
-	var _p1 = model.grid;
-	var gridX = _p1._0;
-	var gridY = _p1._1;
-	var _p2 = model.robot;
-	var isLost = _p2._0;
-	var x = _p2._1;
-	var y = _p2._2;
-	var z = _p2._3;
-	return A2(
-		_elm_lang$core$Basics_ops['++'],
-		_elm_lang$core$Basics$toString(x),
-		A2(
-			_elm_lang$core$Basics_ops['++'],
-			' ',
-			A2(
-				_elm_lang$core$Basics_ops['++'],
-				_elm_lang$core$Basics$toString(y),
-				A2(
-					_elm_lang$core$Basics_ops['++'],
-					' ',
-					A2(
-						_elm_lang$core$Basics_ops['++'],
-						_elm_lang$core$String$fromChar(
-							_user$project$App$toCharOrientation(z)),
-						isLost ? ' LOST' : '')))));
-};
-var _user$project$App$newOutput = F2(
-	function (model, input) {
-		var _p3 = model.robot;
-		var x = _p3._1;
-		var y = _p3._2;
-		var z = _p3._3;
-		return A2(
-			_elm_lang$core$Task$map,
-			function (str) {
-				return {ctor: '_Tuple2', _0: str, _1: input};
-			},
-			_elm_lang$core$Task$succeed(
-				_user$project$App$out(model)));
-	});
-var _user$project$App$parseCoords = function (str) {
-	var _p4 = A2(_Bogdanp$elm_combine$Combine$parse, _user$project$App$coords, str);
-	if (_p4._0.ctor === 'Ok') {
-		return _elm_lang$core$Result$Ok(
-			{ctor: '_Tuple2', _0: _p4._0._0, _1: _p4._1.input});
-	} else {
-		return _elm_lang$core$Result$Err(
-			A2(
-				_elm_lang$core$Basics_ops['++'],
-				'parse error: ',
-				_elm_lang$core$Basics$toString(_p4._0._0)));
-	}
-};
-var _user$project$App$Model = F5(
-	function (a, b, c, d, e) {
-		return {input: a, output: b, robot: c, scents: d, grid: e};
-	});
-var _user$project$App$West = {ctor: 'West'};
-var _user$project$App$East = {ctor: 'East'};
-var _user$project$App$South = {ctor: 'South'};
-var _user$project$App$North = {ctor: 'North'};
-var _user$project$App$initialModel = {
-	input: '5 3\n1 1 E\nRFRFRFRF\n\n3 2 N\nFRRFLLFFRRFLL\n\n0 3 W\nLLFFFLFLFL\n\n',
-	output: _elm_lang$core$Native_List.fromArray(
-		[
-			_elm_lang$html$Html$text('')
-		]),
-	robot: {ctor: '_Tuple4', _0: false, _1: 0, _2: 0, _3: _user$project$App$North},
-	scents: _elm_lang$core$Native_List.fromArray(
-		[]),
-	grid: {ctor: '_Tuple2', _0: 0, _1: 0}
-};
-var _user$project$App$parseCoordsTask = function (str) {
-	return A2(
-		_elm_lang$core$Task$map,
-		_elm_lang$core$Result$withDefault(
-			{ctor: '_Tuple2', _0: _user$project$App$initialModel.grid, _1: ''}),
-		_elm_lang$core$Task$succeed(
-			_user$project$App$parseCoords(str)));
-};
-var _user$project$App$toOrientation = function (c) {
-	var _p5 = c;
-	switch (_p5.valueOf()) {
-		case 'N':
-			return _user$project$App$North;
-		case 'S':
-			return _user$project$App$South;
-		case 'E':
-			return _user$project$App$East;
-		case 'W':
-			return _user$project$App$West;
+var _user$project$Types$Forward = {ctor: 'Forward'};
+var _user$project$Types$Right = {ctor: 'Right'};
+var _user$project$Types$Left = {ctor: 'Left'};
+var _user$project$Types$West = {ctor: 'West'};
+var _user$project$Types$East = {ctor: 'East'};
+var _user$project$Types$South = {ctor: 'South'};
+var _user$project$Types$North = {ctor: 'North'};
+var _user$project$Parser$toInstruction = function (c) {
+	var _p0 = c;
+	switch (_p0.valueOf()) {
+		case 'L':
+			return _user$project$Types$Left;
+		case 'R':
+			return _user$project$Types$Right;
+		case 'F':
+			return _user$project$Types$Forward;
 		default:
 			return _elm_lang$core$Native_Utils.crashCase(
-				'App',
+				'Parser',
 				{
-					start: {line: 283, column: 5},
-					end: {line: 288, column: 31}
+					start: {line: 62, column: 5},
+					end: {line: 66, column: 31}
 				},
-				_p5)('wat');
+				_p0)('wat');
 	}
 };
-var _user$project$App$orientation = A2(
+var _user$project$Parser$instruction = A2(
 	_Bogdanp$elm_combine$Combine_Infix_ops['<$>'],
-	_user$project$App$toOrientation,
+	_user$project$Parser$toInstruction,
+	_Bogdanp$elm_combine$Combine_Char$oneOf(
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_elm_lang$core$Native_Utils.chr('L'),
+				_elm_lang$core$Native_Utils.chr('R'),
+				_elm_lang$core$Native_Utils.chr('F')
+			])));
+var _user$project$Parser$instructions = A2(
+	_Bogdanp$elm_combine$Combine$manyTill,
+	_user$project$Parser$instruction,
+	A2(_Bogdanp$elm_combine$Combine_Infix_ops['<|>'], _Bogdanp$elm_combine$Combine_Char$newline, _Bogdanp$elm_combine$Combine_Char$eol));
+var _user$project$Parser$toOrientation = function (c) {
+	var _p2 = c;
+	switch (_p2.valueOf()) {
+		case 'N':
+			return _user$project$Types$North;
+		case 'S':
+			return _user$project$Types$South;
+		case 'E':
+			return _user$project$Types$East;
+		case 'W':
+			return _user$project$Types$West;
+		default:
+			return _elm_lang$core$Native_Utils.crashCase(
+				'Parser',
+				{
+					start: {line: 44, column: 5},
+					end: {line: 49, column: 31}
+				},
+				_p2)('wat');
+	}
+};
+var _user$project$Parser$orientation = A2(
+	_Bogdanp$elm_combine$Combine_Infix_ops['<$>'],
+	_user$project$Parser$toOrientation,
 	_Bogdanp$elm_combine$Combine_Char$oneOf(
 		_elm_lang$core$Native_List.fromArray(
 			[
@@ -9339,131 +9037,272 @@ var _user$project$App$orientation = A2(
 				_elm_lang$core$Native_Utils.chr('E'),
 				_elm_lang$core$Native_Utils.chr('W')
 			])));
-var _user$project$App$position = A2(
-	_Bogdanp$elm_combine$Combine_Infix_ops['<*'],
+var _user$project$Parser$position = A2(
+	_Bogdanp$elm_combine$Combine_Infix_ops['<*>'],
 	A2(
-		_Bogdanp$elm_combine$Combine_Infix_ops['<*>'],
+		_Bogdanp$elm_combine$Combine_Infix_ops['<*'],
 		A2(
-			_Bogdanp$elm_combine$Combine_Infix_ops['<*'],
+			_Bogdanp$elm_combine$Combine_Infix_ops['<*>'],
 			A2(
-				_Bogdanp$elm_combine$Combine_Infix_ops['<*>'],
+				_Bogdanp$elm_combine$Combine_Infix_ops['<*'],
 				A2(
-					_Bogdanp$elm_combine$Combine_Infix_ops['<*'],
+					_Bogdanp$elm_combine$Combine_Infix_ops['<$>'],
+					F4(
+						function (v0, v1, v2, v3) {
+							return {ctor: '_Tuple4', _0: v0, _1: v1, _2: v2, _3: v3};
+						})(false),
+					_Bogdanp$elm_combine$Combine_Num$int),
+				_Bogdanp$elm_combine$Combine_Char$space),
+			_Bogdanp$elm_combine$Combine_Num$int),
+		_Bogdanp$elm_combine$Combine_Char$space),
+	_user$project$Parser$orientation);
+var _user$project$Parser$grid = A2(
+	_Bogdanp$elm_combine$Combine_Infix_ops['<*>'],
+	A2(
+		_Bogdanp$elm_combine$Combine_Infix_ops['<*'],
+		A2(
+			_Bogdanp$elm_combine$Combine_Infix_ops['<$>'],
+			F2(
+				function (v0, v1) {
+					return {ctor: '_Tuple2', _0: v0, _1: v1};
+				}),
+			_Bogdanp$elm_combine$Combine_Num$int),
+		_Bogdanp$elm_combine$Combine_Char$space),
+	_Bogdanp$elm_combine$Combine_Num$int);
+var _user$project$Parser$pair = A2(
+	_Bogdanp$elm_combine$Combine_Infix_ops['<*>'],
+	A2(
+		_Bogdanp$elm_combine$Combine_Infix_ops['<*'],
+		A2(
+			_Bogdanp$elm_combine$Combine_Infix_ops['<$>'],
+			F2(
+				function (v0, v1) {
+					return {ctor: '_Tuple2', _0: v0, _1: v1};
+				}),
+			_user$project$Parser$position),
+		_Bogdanp$elm_combine$Combine_Char$newline),
+	_user$project$Parser$instructions);
+var _user$project$Parser$programInput = A2(
+	_Bogdanp$elm_combine$Combine_Infix_ops['<*>'],
+	A2(
+		_Bogdanp$elm_combine$Combine_Infix_ops['<*'],
+		A2(
+			_Bogdanp$elm_combine$Combine_Infix_ops['<$>'],
+			F2(
+				function (v0, v1) {
+					return {ctor: '_Tuple2', _0: v0, _1: v1};
+				}),
+			_user$project$Parser$grid),
+		_Bogdanp$elm_combine$Combine_Char$newline),
+	A2(_Bogdanp$elm_combine$Combine$sepBy1, _Bogdanp$elm_combine$Combine_Char$newline, _user$project$Parser$pair));
+var _user$project$Parser$parse = function (str) {
+	var _p4 = A2(_Bogdanp$elm_combine$Combine$parse, _user$project$Parser$programInput, str);
+	if (_p4._0.ctor === 'Ok') {
+		return _elm_lang$core$Result$Ok(_p4._0._0);
+	} else {
+		return _elm_lang$core$Result$Err(
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				'parse error: ',
+				_elm_lang$core$Basics$toString(_p4._0._0)));
+	}
+};
+var _user$project$App$initial = function (a) {
+	return A2(
+		_elm_lang$core$String$left,
+		1,
+		_elm_lang$core$Basics$toString(a));
+};
+var _user$project$App$toStringRobot = function (_p0) {
+	var _p1 = _p0;
+	return A2(
+		_elm_lang$core$Basics_ops['++'],
+		_elm_lang$core$Basics$toString(_p1._1),
+		A2(
+			_elm_lang$core$Basics_ops['++'],
+			' ',
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				_elm_lang$core$Basics$toString(_p1._2),
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					' ',
 					A2(
-						_Bogdanp$elm_combine$Combine_Infix_ops['<$>'],
-						F4(
-							function (v0, v1, v2, v3) {
-								return {ctor: '_Tuple4', _0: v0, _1: v1, _2: v2, _3: v3};
-							})(false),
-						_Bogdanp$elm_combine$Combine_Num$int),
-					_Bogdanp$elm_combine$Combine_Char$space),
-				_Bogdanp$elm_combine$Combine_Num$int),
-			_Bogdanp$elm_combine$Combine_Char$space),
-		_user$project$App$orientation),
-	_Bogdanp$elm_combine$Combine_Char$newline);
-var _user$project$App$parseRobot = function (str) {
-	var _p7 = A2(_Bogdanp$elm_combine$Combine$parse, _user$project$App$position, str);
-	if (_p7._0.ctor === 'Ok') {
-		return _elm_lang$core$Result$Ok(
-			{ctor: '_Tuple2', _0: _p7._0._0, _1: _p7._1.input});
-	} else {
-		return _elm_lang$core$Result$Err(
-			A2(
-				_elm_lang$core$Basics_ops['++'],
-				'parse error: ',
-				_elm_lang$core$Basics$toString(_p7._0._0)));
-	}
+						_elm_lang$core$Basics_ops['++'],
+						_user$project$App$initial(_p1._3),
+						_p1._0 ? ' LOST' : '')))));
 };
-var _user$project$App$parseRobotTask = function (str) {
-	return A2(
-		_elm_lang$core$Task$map,
-		_elm_lang$core$Result$withDefault(
-			{ctor: '_Tuple2', _0: _user$project$App$initialModel.robot, _1: ''}),
-		_elm_lang$core$Task$succeed(
-			_user$project$App$parseRobot(str)));
-};
-var _user$project$App$Forward = {ctor: 'Forward'};
-var _user$project$App$Right = {ctor: 'Right'};
-var _user$project$App$Left = {ctor: 'Left'};
-var _user$project$App$toInstruction = function (c) {
-	var _p8 = c;
-	switch (_p8.valueOf()) {
-		case 'L':
-			return _user$project$App$Left;
-		case 'R':
-			return _user$project$App$Right;
-		case 'F':
-			return _user$project$App$Forward;
-		default:
-			return _elm_lang$core$Native_Utils.crashCase(
-				'App',
+var _user$project$App$turn = F2(
+	function (instruction, orientation) {
+		var _p2 = instruction;
+		switch (_p2.ctor) {
+			case 'Left':
+				var _p3 = orientation;
+				switch (_p3.ctor) {
+					case 'North':
+						return _user$project$Types$West;
+					case 'South':
+						return _user$project$Types$East;
+					case 'East':
+						return _user$project$Types$North;
+					default:
+						return _user$project$Types$South;
+				}
+			case 'Right':
+				var _p4 = orientation;
+				switch (_p4.ctor) {
+					case 'North':
+						return _user$project$Types$East;
+					case 'South':
+						return _user$project$Types$West;
+					case 'East':
+						return _user$project$Types$South;
+					default:
+						return _user$project$Types$North;
+				}
+			default:
+				return orientation;
+		}
+	});
+var _user$project$App$forward = F3(
+	function (a, b, c) {
+		var b$ = function () {
+			var _p5 = c;
+			switch (_p5.ctor) {
+				case 'North':
+					return b + 1;
+				case 'South':
+					return b - 1;
+				default:
+					return b;
+			}
+		}();
+		var a$ = function () {
+			var _p6 = c;
+			switch (_p6.ctor) {
+				case 'East':
+					return a + 1;
+				case 'West':
+					return a - 1;
+				default:
+					return a;
+			}
+		}();
+		return {ctor: '_Tuple2', _0: a$, _1: b$};
+	});
+var _user$project$App$update = F2(
+	function (_p7, model) {
+		var _p8 = _p7;
+		var _p25 = _p8._0;
+		var _p9 = _user$project$Parser$parse(_p25);
+		if (_p9.ctor === 'Err') {
+			return _elm_lang$core$Native_Utils.update(
+				model,
 				{
-					start: {line: 312, column: 5},
-					end: {line: 316, column: 31}
-				},
-				_p8)('wat');
-	}
+					output: _elm_lang$core$Native_List.fromArray(
+						[_p9._0])
+				});
+		} else {
+			var process = F2(
+				function (instruction, _p10) {
+					var _p11 = _p10;
+					var _p18 = _p11._1;
+					var _p17 = _p11._0._0;
+					var _p16 = _p11._0._3;
+					var _p15 = _p11._0._2;
+					var _p14 = _p11._0._1;
+					var _p12 = instruction;
+					if (_p12.ctor === 'Forward') {
+						var inScent = A2(
+							_elm_lang$core$List$member,
+							{ctor: '_Tuple3', _0: _p14, _1: _p15, _2: _p16},
+							_p18);
+						var _p13 = A3(_user$project$App$forward, _p14, _p15, _p16);
+						var a$ = _p13._0;
+						var b$ = _p13._1;
+						var outOfBounds = (_elm_lang$core$Native_Utils.cmp(a$, _p9._0._0._0) > 0) || ((_elm_lang$core$Native_Utils.cmp(b$, _p9._0._0._1) > 0) || ((_elm_lang$core$Native_Utils.cmp(a$, 0) < 0) || (_elm_lang$core$Native_Utils.cmp(b$, 0) < 0)));
+						return inScent ? {ctor: '_Tuple2', _0: _p11._0, _1: _p18} : (outOfBounds ? {
+							ctor: '_Tuple2',
+							_0: {ctor: '_Tuple4', _0: true, _1: a$, _2: b$, _3: _p16},
+							_1: A2(
+								_elm_lang$core$List_ops['::'],
+								{ctor: '_Tuple3', _0: _p14, _1: _p15, _2: _p16},
+								_p18)
+						} : {
+							ctor: '_Tuple2',
+							_0: {ctor: '_Tuple4', _0: _p17, _1: a$, _2: b$, _3: _p16},
+							_1: _p18
+						});
+					} else {
+						return {
+							ctor: '_Tuple2',
+							_0: {
+								ctor: '_Tuple4',
+								_0: _p17,
+								_1: _p14,
+								_2: _p15,
+								_3: A2(_user$project$App$turn, instruction, _p16)
+							},
+							_1: _p18
+						};
+					}
+				});
+			var processPair = F2(
+				function (_p20, _p19) {
+					var _p21 = _p20;
+					var _p22 = _p19;
+					var _p24 = _p22._1;
+					var _p23 = A3(
+						_elm_lang$core$List$foldl,
+						process,
+						{ctor: '_Tuple2', _0: _p21._0, _1: _p24},
+						_p21._1);
+					var newRobot = _p23._0;
+					var newScents = _p23._1;
+					return {
+						ctor: '_Tuple2',
+						_0: A2(
+							_elm_lang$core$Basics_ops['++'],
+							_p22._0,
+							_elm_lang$core$Native_List.fromArray(
+								[newRobot])),
+						_1: A2(_elm_lang$core$Basics_ops['++'], _p24, newScents)
+					};
+				});
+			var newOutput = A2(
+				_elm_lang$core$List$map,
+				_user$project$App$toStringRobot,
+				_elm_lang$core$Basics$fst(
+					A3(
+						_elm_lang$core$List$foldl,
+						processPair,
+						{
+							ctor: '_Tuple2',
+							_0: _elm_lang$core$Native_List.fromArray(
+								[]),
+							_1: _elm_lang$core$Native_List.fromArray(
+								[])
+						},
+						_p9._0._1)));
+			return _elm_lang$core$Native_Utils.update(
+				model,
+				{input: _p25, output: newOutput});
+		}
+	});
+var _user$project$App$initialModel = {
+	input: '5 3\n1 1 E\nRFRFRFRF\n\n3 2 N\nFRRFLLFFRRFLL\n\n0 3 W\nLLFFFLFLFL\n\n',
+	output: _elm_lang$core$Native_List.fromArray(
+		[])
 };
-var _user$project$App$instruction = A2(
-	_Bogdanp$elm_combine$Combine_Infix_ops['<$>'],
-	_user$project$App$toInstruction,
-	_Bogdanp$elm_combine$Combine_Char$oneOf(
-		_elm_lang$core$Native_List.fromArray(
-			[
-				_elm_lang$core$Native_Utils.chr('L'),
-				_elm_lang$core$Native_Utils.chr('R'),
-				_elm_lang$core$Native_Utils.chr('F')
-			])));
-var _user$project$App$instructions = A2(
-	_Bogdanp$elm_combine$Combine_Infix_ops['<*'],
-	A2(_Bogdanp$elm_combine$Combine$manyTill, _user$project$App$instruction, _Bogdanp$elm_combine$Combine_Char$newline),
-	_Bogdanp$elm_combine$Combine_Char$newline);
-var _user$project$App$parseInstructions = function (str) {
-	var _p10 = A2(_Bogdanp$elm_combine$Combine$parse, _user$project$App$instructions, str);
-	if (_p10._0.ctor === 'Ok') {
-		return _elm_lang$core$Result$Ok(
-			{ctor: '_Tuple2', _0: _p10._0._0, _1: _p10._1.input});
-	} else {
-		return _elm_lang$core$Result$Err(
-			A2(
-				_elm_lang$core$Basics_ops['++'],
-				'parse error: ',
-				_elm_lang$core$Basics$toString(_p10._0._0)));
-	}
+var _user$project$App$Model = F2(
+	function (a, b) {
+		return {input: a, output: b};
+	});
+var _user$project$App$Change = function (a) {
+	return {ctor: 'Change', _0: a};
 };
-var _user$project$App$parseInstructionsTask = function (str) {
-	return A2(
-		_elm_lang$core$Task$map,
-		_elm_lang$core$Result$withDefault(
-			{
-				ctor: '_Tuple2',
-				_0: _elm_lang$core$Native_List.fromArray(
-					[]),
-				_1: ''
-			}),
-		_elm_lang$core$Task$succeed(
-			_user$project$App$parseInstructions(str)));
-};
-var _user$project$App$ProcessInstruction = function (a) {
-	return {ctor: 'ProcessInstruction', _0: a};
-};
-var _user$project$App$ProcessInstructions = function (a) {
-	return {ctor: 'ProcessInstructions', _0: a};
-};
-var _user$project$App$SetRobot = function (a) {
-	return {ctor: 'SetRobot', _0: a};
-};
-var _user$project$App$SetGrid = function (a) {
-	return {ctor: 'SetGrid', _0: a};
-};
-var _user$project$App$ChangeOutput = function (a) {
-	return {ctor: 'ChangeOutput', _0: a};
-};
-var _user$project$App$ChangeInput = function (a) {
-	return {ctor: 'ChangeInput', _0: a};
-};
-var _user$project$App$view = function (_p11) {
-	var _p12 = _p11;
+var _user$project$App$view = function (_p26) {
+	var _p27 = _p26;
 	return A2(
 		_elm_lang$html$Html$div,
 		_elm_lang$core$Native_List.fromArray(
@@ -9474,257 +9313,32 @@ var _user$project$App$view = function (_p11) {
 				_elm_lang$html$Html$textarea,
 				_elm_lang$core$Native_List.fromArray(
 					[
-						_elm_lang$html$Html_Events$onInput(_user$project$App$ChangeInput),
+						_elm_lang$html$Html_Events$onInput(_user$project$App$Change),
 						_elm_lang$html$Html_Attributes$rows(20)
 					]),
 				_elm_lang$core$Native_List.fromArray(
 					[
-						_elm_lang$html$Html$text(_p12.input)
+						_elm_lang$html$Html$text(_p27.input)
 					])),
 				A2(
 				_elm_lang$html$Html$p,
 				_elm_lang$core$Native_List.fromArray(
 					[]),
-				_p12.output)
+				A2(
+					_elm_lang$core$List$intersperse,
+					A2(
+						_elm_lang$html$Html$br,
+						_elm_lang$core$Native_List.fromArray(
+							[]),
+						_elm_lang$core$Native_List.fromArray(
+							[])),
+					A2(_elm_lang$core$List$map, _elm_lang$html$Html$text, _p27.output)))
 			]));
 };
-var _user$project$App$NoOp = {ctor: 'NoOp'};
-var _user$project$App$parse1stLine = function (str) {
-	return A3(
-		_elm_lang$core$Task$perform,
-		_elm_lang$core$Basics$always(_user$project$App$NoOp),
-		_user$project$App$SetGrid,
-		_user$project$App$parseCoordsTask(str));
-};
-var _user$project$App$parse2ndLine = function (str) {
-	return A3(
-		_elm_lang$core$Task$perform,
-		_elm_lang$core$Basics$always(_user$project$App$NoOp),
-		_user$project$App$SetRobot,
-		_user$project$App$parseRobotTask(str));
-};
-var _user$project$App$parse3rdLine = function (str) {
-	return A3(
-		_elm_lang$core$Task$perform,
-		_elm_lang$core$Basics$always(_user$project$App$NoOp),
-		_user$project$App$ProcessInstructions,
-		_user$project$App$parseInstructionsTask(str));
-};
-var _user$project$App$update = F2(
-	function (msg, model) {
-		update:
-		while (true) {
-			var _p13 = A2(_elm_lang$core$Debug$log, 'm', msg);
-			switch (_p13.ctor) {
-				case 'NoOp':
-					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
-				case 'ChangeInput':
-					var _p14 = _p13._0;
-					return {
-						ctor: '_Tuple2',
-						_0: _elm_lang$core$Native_Utils.update(
-							_user$project$App$initialModel,
-							{input: _p14}),
-						_1: _user$project$App$parse1stLine(_p14)
-					};
-				case 'ChangeOutput':
-					var _p15 = _p13._0._1;
-					return {
-						ctor: '_Tuple2',
-						_0: _elm_lang$core$Native_Utils.update(
-							model,
-							{
-								output: A2(
-									_elm_lang$core$Basics_ops['++'],
-									model.output,
-									_elm_lang$core$Native_List.fromArray(
-										[
-											_elm_lang$html$Html$text(_p13._0._0),
-											A2(
-											_elm_lang$html$Html$br,
-											_elm_lang$core$Native_List.fromArray(
-												[]),
-											_elm_lang$core$Native_List.fromArray(
-												[]))
-										]))
-							}),
-						_1: _elm_lang$core$String$isEmpty(_p15) ? _elm_lang$core$Platform_Cmd$none : _user$project$App$parse2ndLine(_p15)
-					};
-				case 'SetGrid':
-					return {
-						ctor: '_Tuple2',
-						_0: _elm_lang$core$Native_Utils.update(
-							model,
-							{grid: _p13._0._0}),
-						_1: _user$project$App$parse2ndLine(_p13._0._1)
-					};
-				case 'SetRobot':
-					return {
-						ctor: '_Tuple2',
-						_0: _elm_lang$core$Native_Utils.update(
-							model,
-							{robot: _p13._0._0}),
-						_1: _user$project$App$parse3rdLine(_p13._0._1)
-					};
-				case 'ProcessInstructions':
-					var _p18 = _p13._0._1;
-					var _p16 = _p13._0._0;
-					if (_p16.ctor === '[]') {
-						var _v9 = _user$project$App$ChangeOutput(
-							{
-								ctor: '_Tuple2',
-								_0: _user$project$App$out(model),
-								_1: _p18
-							}),
-							_v10 = model;
-						msg = _v9;
-						model = _v10;
-						continue update;
-					} else {
-						var _p17 = A2(
-							_user$project$App$update,
-							_user$project$App$ProcessInstruction(_p16._0),
-							model);
-						var newModel = _p17._0;
-						var _v11 = _user$project$App$ProcessInstructions(
-							{ctor: '_Tuple2', _0: _p16._1, _1: _p18}),
-							_v12 = newModel;
-						msg = _v11;
-						model = _v12;
-						continue update;
-					}
-				default:
-					var _p19 = model.robot;
-					var isLost = _p19._0;
-					var x = _p19._1;
-					var y = _p19._2;
-					var z = _p19._3;
-					var _p20 = _p13._0;
-					switch (_p20.ctor) {
-						case 'Left':
-							var newOrientation = function () {
-								var _p21 = z;
-								switch (_p21.ctor) {
-									case 'North':
-										return _user$project$App$West;
-									case 'South':
-										return _user$project$App$East;
-									case 'East':
-										return _user$project$App$North;
-									default:
-										return _user$project$App$South;
-								}
-							}();
-							return {
-								ctor: '_Tuple2',
-								_0: _elm_lang$core$Native_Utils.update(
-									model,
-									{
-										robot: {ctor: '_Tuple4', _0: isLost, _1: x, _2: y, _3: newOrientation}
-									}),
-								_1: _elm_lang$core$Platform_Cmd$none
-							};
-						case 'Right':
-							var newOrientation = function () {
-								var _p22 = z;
-								switch (_p22.ctor) {
-									case 'North':
-										return _user$project$App$East;
-									case 'South':
-										return _user$project$App$West;
-									case 'East':
-										return _user$project$App$South;
-									default:
-										return _user$project$App$North;
-								}
-							}();
-							return {
-								ctor: '_Tuple2',
-								_0: _elm_lang$core$Native_Utils.update(
-									model,
-									{
-										robot: {ctor: '_Tuple4', _0: isLost, _1: x, _2: y, _3: newOrientation}
-									}),
-								_1: _elm_lang$core$Platform_Cmd$none
-							};
-						default:
-							var inScent = A2(
-								_elm_lang$core$List$member,
-								{ctor: '_Tuple3', _0: x, _1: y, _2: z},
-								model.scents);
-							var newY = function () {
-								var _p23 = z;
-								switch (_p23.ctor) {
-									case 'North':
-										return y + 1;
-									case 'South':
-										return y - 1;
-									default:
-										return y;
-								}
-							}();
-							var newX = function () {
-								var _p24 = z;
-								switch (_p24.ctor) {
-									case 'East':
-										return x + 1;
-									case 'West':
-										return x - 1;
-									default:
-										return x;
-								}
-							}();
-							var outOfBounds = (_elm_lang$core$Native_Utils.cmp(
-								newX,
-								_elm_lang$core$Basics$fst(model.grid)) > 0) || ((_elm_lang$core$Native_Utils.cmp(
-								newY,
-								_elm_lang$core$Basics$snd(model.grid)) > 0) || ((_elm_lang$core$Native_Utils.cmp(newX, 0) < 0) || (_elm_lang$core$Native_Utils.cmp(newY, 0) < 0)));
-							return inScent ? {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none} : (outOfBounds ? {
-								ctor: '_Tuple2',
-								_0: _elm_lang$core$Native_Utils.update(
-									model,
-									{
-										robot: {ctor: '_Tuple4', _0: true, _1: newX, _2: newY, _3: z},
-										scents: A2(
-											_elm_lang$core$List_ops['::'],
-											{ctor: '_Tuple3', _0: x, _1: y, _2: z},
-											model.scents)
-									}),
-								_1: _elm_lang$core$Platform_Cmd$none
-							} : {
-								ctor: '_Tuple2',
-								_0: _elm_lang$core$Native_Utils.update(
-									model,
-									{
-										robot: {ctor: '_Tuple4', _0: isLost, _1: newX, _2: newY, _3: z}
-									}),
-								_1: _elm_lang$core$Platform_Cmd$none
-							});
-					}
-			}
-		}
-	});
 var _user$project$App$main = {
-	main: _elm_lang$html$Html_App$program(
-		{
-			init: {
-				ctor: '_Tuple2',
-				_0: _user$project$App$initialModel,
-				_1: _user$project$App$parse1stLine(_user$project$App$initialModel.input)
-			},
-			view: _user$project$App$view,
-			update: _user$project$App$update,
-			subscriptions: _elm_lang$core$Basics$always(_elm_lang$core$Platform_Sub$none)
-		})
+	main: _elm_lang$html$Html_App$beginnerProgram(
+		{model: _user$project$App$initialModel, view: _user$project$App$view, update: _user$project$App$update})
 };
-var _user$project$App$setOutput = F2(
-	function (model, input) {
-		return A3(
-			_elm_lang$core$Task$perform,
-			_elm_lang$core$Basics$always(_user$project$App$NoOp),
-			_user$project$App$ChangeOutput,
-			A2(_user$project$App$newOutput, model, input));
-	});
 var Elm = {};
 Elm['App'] = Elm['App'] || {};
 _elm_lang$core$Native_Platform.addPublicModule(Elm['App'], 'App', typeof _user$project$App$main === 'undefined' ? null : _user$project$App$main);
