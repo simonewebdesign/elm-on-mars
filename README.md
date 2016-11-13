@@ -11,6 +11,7 @@ If you're using Mac OS X just copy paste this in your terminal:
 ```
 git clone https://github.com/simonewebdesign/elm-on-mars.git
 cd elm-on-mars
+git checkout production
 python -m SimpleHTTPServer 8000 &
 open http://localhost:8000/
 ```
@@ -19,11 +20,11 @@ open http://localhost:8000/
 
 If you want to compile this project you need [Elm](http://elm-lang.org/) 0.17 installed on your machine.
 
-Compile this project with:
+Compile it with:
 
     elm make src/App.elm
 
-Then view it:
+Then view it in the browser (will compile too if you didn't):
 
     elm reactor
 
